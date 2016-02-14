@@ -4,10 +4,14 @@ __author__ = 'Athena'
 import os
 
 class Chapter(object):
-    def __init__(self, name, directory, initial_page=0):
+    def __init__(self, parent, name, number, directory, initial_page=0, downloaded=False, completed=False):
+        self.parent = parent
         self.name = name
+        self.number = number
         self.directory = directory
         self.current_page_index = initial_page
+        self.is_downloaded = downloaded
+        self.is_complete = completed
         self.pages = []
 
     def add_page(self, page):

@@ -6,7 +6,8 @@ from kml.web.baseparser import BaseParser
 
 
 class Page(object):
-    def __init__(self, data, title, number):
+    def __init__(self, parent, data, title, number):
+        self.parent = parent
         self._pixmap = False
         self.data = data
         self.title = title

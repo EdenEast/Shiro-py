@@ -157,6 +157,11 @@ class MainWindowView(QtGui.QMainWindow):
             'Ctrl+Shift+Right': controller.next_chapter,
             'Ctrl+R': controller.rotate_right,
             'Ctrl+Shift+R': controller.rotate_left,
+            'Ctrl+O': controller.open,
+            'Ctrl+1': controller.origninal_fit,
+            'Ctrl+2': controller.vertical_fit,
+            'Ctrl+3': controller.horizontal_fit,
+            'Ctrl+4': controller.best_fit,
         }
 
         for key, value in squence.items():
@@ -185,6 +190,9 @@ class MainWindowView(QtGui.QMainWindow):
     def reset_window_default_size(self):
         self.setMinimumSize(QtGui.QApplication.desktop().screenGeometry().size() * 0.8)
 
+    def get_current_view_container_size(self):
+        return self.current_view_container.size()
+
     def set_viewer_content(self, content):
         # if content and isinstance(QtGui.QPixmap):
         if content:
@@ -197,8 +205,7 @@ class MainWindowView(QtGui.QMainWindow):
     # Update the current view content and resize to the new content
     def update_current_view_container_size(self):
         self.set_viewer_content(self.controller.model.get_current_page())
-        # raise NotImplemented
-        pass
+
     # ----------------------------------------------------------------------------------
     # Handle Full screen event
     def on_action_fullscreen_triggered(self):

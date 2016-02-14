@@ -45,8 +45,6 @@ class MainWindowModel(object):
         self.page_list = image_list
         self.current_page = 0
 
-        print(image_list)
-
     def get_current_page(self):
         if self.current_page < len(self.page_list):
             iamge_qt = ImageQt(self.page_list[self.current_page])
@@ -64,16 +62,23 @@ class MainWindowModel(object):
     def _resize_page(self, pix_map):
         if self.fit_type == MainWindowModel._VERTICAL_FIT:
             pix_map = pix_map.scaledToHeight(
-                self.controller.get_current_view_container_size().height(),
+                self.controller.get_current_view_container_size().height() - 2,
                 QtCore.Qt.SmoothTransformation)
+
         elif self.fit_type == MainWindowModel._HORIZONTAL_FIT:
             pix_map = pix_map.scaledToWidth(
                 self.controller.get_current_view_container_size().width(),
                 QtCore.Qt.SmoothTransformation)
         elif self.fit_type == MainWindowModel._BEST_FIT:
-            pix_map = pix_map.scaledToWidth(
-                self.controller.get_current_view_container_size().width() * 0.8,
-                QtCore.Qt.SmoothTransformation)
+            ratio = pix_map.width() / pix_map.height()
+            if ratio < 1:
+                pix_map = pix_map.scaledToWidth(
+                    self.controller.get_current_view_container_size().width() * 0.8,
+                    QtCore.Qt.SmoothTransformation)
+            else:
+                pix_map = pix_map.scaledToHeight(
+                    self.controller.get_current_view_container_size().height() * 0.95,
+                    QtCore.Qt.SmoothTransformation)
         return pix_map
 
     def rotate_left(self):

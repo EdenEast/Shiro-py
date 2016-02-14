@@ -3,9 +3,12 @@ __author__ = 'Athena'
 # from kml.gui import main as run
 # run()
 
-from kml.main_window_controller import MainWindowController
-from PyQt4 import QtGui, QtCore
 import sys
+
+from PyQt4 import QtGui
+
+from kml.ui.main_window_controller import MainWindowController
+
 
 def main():
     app = QtGui.QApplication(sys.argv)

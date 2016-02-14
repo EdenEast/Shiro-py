@@ -1,7 +1,9 @@
 
 # Importing the view and model for the main window
-from kml import main_window_view, main_window_model, utility
 from PyQt4 import QtGui, QtCore
+
+from kml import utility
+from kml.ui import main_window_model, main_window_view
 
 
 class MainWindowController(object):
@@ -46,6 +48,9 @@ class MainWindowController(object):
 
     # ----------------------------------------------------------------------------------
     # Interacting with pages
+    # might want to look at this to see if we can get animation when the value changes
+    # so it is not just a harsh jump to the value
+    # http://svn.pardusproject.org/svn/uludag/trunk/upgrade-manager/src/pds/qpagewidget.py
 
     def next_page(self):
         # Getting the value of the current vertical scroll bar and checking to see
@@ -60,7 +65,7 @@ class MainWindowController(object):
         # If we are not at the end of the page we need to move down the page
         # Get the page step value from the scroll bar
         page_step = self.view.current_view_container.verticalScrollBar().pageStep()
-        page_step -= (page_step * 0.1)
+        page_step -= (page_step * 0.15)
         self.view.current_view_container.verticalScrollBar().setValue(value + page_step)
 
     def prev_page(self):
@@ -77,7 +82,7 @@ class MainWindowController(object):
 
         # If we are not at the beginning of the page we need to move the page up
         page_step = self.view.current_view_container.verticalScrollBar().pageStep()
-        page_step -= (page_step * 0.1)
+        page_step -= (page_step * 0.15)
         self.view.current_view_container.verticalScrollBar().setValue(value - page_step)
 
     def first_page(self):
@@ -145,7 +150,7 @@ class MainWindowController(object):
         self.view.show()
 
     def get_current_view_container_size(self):
-        pass
+        return self.view.get_current_view_container_size()
 
     def set_view_content(self, content):
         self.view.set_viewer_content(content)
