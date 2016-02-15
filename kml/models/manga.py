@@ -21,6 +21,12 @@ class Manga(object):
     def remove_chapter(self, chapter):
         self.chapter_list.remove(chapter)
 
+    def is_in_chapter_list(self, chapter_title):
+        for chapter in self.chapter_list:
+            if chapter.title == chapter_title:
+                return True
+        return False
+
     def sort_chapters(self):
         self.chapter_list.sort(key=lambda x: x.number, reverse=False)
 

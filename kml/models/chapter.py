@@ -1,14 +1,13 @@
 __author__ = 'Athena'
 
 
-import os
-
 class Chapter(object):
-    def __init__(self, parent, name, number, directory, initial_page=0, downloaded=False, completed=False):
+    def __init__(self, parent, title, url, number, sub_number, initial_page=0, downloaded=False, completed=False):
         self.parent = parent
-        self.name = name
+        self.title = title
+        self.url = url
         self.number = number
-        self.directory = directory
+        self.sub_number = sub_number
         self.current_page_index = initial_page
         self.is_downloaded = downloaded
         self.is_complete = completed
@@ -46,9 +45,6 @@ class Chapter(object):
     def set_current_page(self, index):
         if index in range(self.get_number_of_pages()):
             self.current_page_index = index
-
-    def get_path(self):
-        return os.path.join(self.directory, self.name)
 
     def get_number_of_pages(self):
         return len(self.pages)

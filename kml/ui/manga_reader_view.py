@@ -145,10 +145,10 @@ class MainWindowView(QtGui.QMainWindow):
             'Ctrl+R': controller.rotate_right,
             'Ctrl+Shift+R': controller.rotate_left,
             'Ctrl+O': controller.open,
-            'Ctrl+1': controller.origninal_fit,
-            'Ctrl+2': controller.vertical_fit,
-            'Ctrl+3': controller.horizontal_fit,
-            'Ctrl+4': controller.best_fit,
+            '1': controller.origninal_fit,
+            '2': controller.vertical_fit,
+            '3': controller.horizontal_fit,
+            '4': controller.best_fit,
         }
 
         for key, value in squence.items():
