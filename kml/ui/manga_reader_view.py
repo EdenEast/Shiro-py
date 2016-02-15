@@ -18,18 +18,6 @@ class MainWindowView(QtGui.QMainWindow):
 
         self.global_shortcuts = []
 
-        # self.h_layout = QtGui.QHBoxLayout(self)
-        # self.setLayout(self.h_layout)
-
-        # move to setup_ui
-        # self.current_view_container = KScrollAreaViewer(self)
-        # self.label = QtGui.QLabel(self)
-        # self.setCentralWidget(self.label)
-
-
-        # self.current_view_container.setWidget(self.label)
-        # self.current_view_container.show()
-
         # Completing setup and configuration of the main window
         self._create_actions()
         self._create_connections(controller)
@@ -38,7 +26,6 @@ class MainWindowView(QtGui.QMainWindow):
         self._centralize_window()
 
     def setup_ui(self):
-
         self.label = QtGui.QLabel(self)
         self.label.setAlignment(QtCore.Qt.AlignCenter)
 

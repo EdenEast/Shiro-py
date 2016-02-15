@@ -7,7 +7,7 @@ import sys
 
 from PyQt4 import QtGui
 
-from kml.ui.main_window_controller import MainWindowController
+from kml.ui.manga_reader_controller import MainWindowController
 
 
 def main():
@@ -16,7 +16,7 @@ def main():
     app.setApplicationVersion('1.0.0')
 
     main_window = MainWindowController()
-    main_window.open()
+    # main_window.open()
     main_window.show()
     sys.exit(app.exec())
 

@@ -72,12 +72,12 @@ class MainWindowController(object):
         # Getting the value of the current vertical scroll bar and checking to see
         # if the value is a 0 and we are at the top of the page
         value = self.view.current_view_container.verticalScrollBar().value()
-
         if value == self.view.current_view_container.verticalScrollBar().minimum():
-            self.model.prev_page()
-            self.view.current_view_container.verticalScrollBar().setValue(
-                self.view.current_view_container.verticalScrollBar().maximum()
-            )
+            moved_page = self.model.prev_page()
+            if moved_page is True:
+                self.view.current_view_container.verticalScrollBar().setValue(
+                    self.view.current_view_container.verticalScrollBar().maximum()
+                )
             return
 
         # If we are not at the beginning of the page we need to move the page up

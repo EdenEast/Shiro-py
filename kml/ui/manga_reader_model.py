@@ -95,11 +95,15 @@ class MainWindowModel(object):
         if self.current_page <= len(self.page_list) - 1:
             self.current_page += 1
             self.controller.set_view_content(self.get_current_page())
+            return True
+        return False
 
     def prev_page(self):
         if self.current_page > 0:
             self.current_page -= 1
             self.controller.set_view_content(self.get_current_page())
+            return True
+        return False
 
     # ----------------------------------------------------------------------------------
     # Page Views
