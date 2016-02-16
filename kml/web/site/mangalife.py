@@ -24,7 +24,7 @@ class MangaLife(object):
 
         # Getting the title of the manga
         title = soup.find('title').text
-        title = title.split(' Manga - Read')[0]
+        title = title.split(' Manga - Read')[0].lstrip()
 
         # Create the new Manga object
         manga = Manga(title, self.get_name(), url)
@@ -45,7 +45,7 @@ class MangaLife(object):
 
             # Checking to see if the raw_number has a decimal point
             if '.' in raw_number:
-                number, sub_number = raw_number.split('.')[0]
+                number, sub_number = raw_number.split('.')
             else:
                 number = raw_number
 

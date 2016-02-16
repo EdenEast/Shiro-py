@@ -48,3 +48,17 @@ class Chapter(object):
 
     def get_number_of_pages(self):
         return len(self.pages)
+
+    def get_number_string(self):
+        if self.sub_number != 0:
+            return str(self.number) + '.' + str(self.sub_number)
+        return str(self.number)
+
+
+
+    # ----------------------------------------------------------------------------------
+    # XML
+    def to_xml(self):
+        s = '<chapter title=\"{}\" url=\"{}\" number=\"{}\" sub_number=\"{}\" downloaded=\"{}\" completed=\"{}\"/>\n'\
+            .format(self.title, self.url, self.number, self.sub_number, self.is_downloaded, self.is_complete)
+        return s

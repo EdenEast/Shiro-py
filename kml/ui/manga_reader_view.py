@@ -18,6 +18,9 @@ class MainWindowView(QtGui.QMainWindow):
 
         self.global_shortcuts = []
 
+        self.setWindowIcon(QtGui.QIcon('icon.png'))
+        self.setWindowTitle('kml')
+
         # Completing setup and configuration of the main window
         self._create_actions()
         self._create_connections(controller)

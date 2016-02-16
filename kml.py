@@ -5,8 +5,10 @@ __author__ = 'Athena'
 
 
 from kml.ui.manga_reader_controller import MainWindowController
-from PyQt4 import QtGui
+from PyQt4 import QtGui, QtCore
 from kml.web.site.mangalife import MangaLife
+from kml.ui.library_window_view import LibraryWindowView
+from kml.models.library import Library
 import sys
 
 
@@ -25,6 +27,24 @@ def main():
     main_window.show()
     sys.exit(app.exec())
 
-if __name__ == '__main__':
-    main()
+def testing():
+    library = Library()
+    library.load_library()
 
+    # ml = MangaLife()
+    # manga = ml.create_manga_from_url('http://manga.life/read-online/BlackGod')
+    # library.add_manga(manga)
+    # library.save_library()
+
+    app = QtGui.QApplication(sys.argv)
+    app.setApplicationName('Kindread Manga Library')
+    app.setApplicationVersion('0.0.1')
+    app.setStyle(QtGui.QStyleFactory.create('cleanlook'))
+
+    main_window = LibraryWindowView(library)
+    main_window.show()
+    sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    # main()
+    testing()

@@ -7,6 +7,8 @@ from PIL import Image
 from PIL.ImageQt import ImageQt
 
 from kml.path_file_filter import PathFileFilter
+from kml.models.chapter import Chapter
+from kml.models.manga import Manga
 
 
 class MainWindowModel(object):
@@ -28,21 +30,26 @@ class MainWindowModel(object):
         self.current_page = 0
 
     def open(self, file_name, initial_page=0):
-        # Just trying to open a zip file
-        # z = zipfile.ZipFile(file_name, 'r')
-        # image_data = z.read()
-
         # Opening the zip file and reading all of the images in it and storing them in a image_list
         # The images are Pillow images and not QT images because they are much better lets be real
         # http://stackoverflow.com/questions/33166316/how-to-read-an-image-inside-a-zip-file-with-pil-pillow
-        image_list = []
+        # image_list = []
+        # with zipfile.ZipFile(file_name) as archive:
+        #     for entry in archive.infolist():
+        #         with archive.open(entry) as file:
+        #             img = Image.open(file)
+        #             image_list.append(img)
+        #
+        # self.page_list = image_list
+        # self.current_page = 0
+
+        self.chapter = Chapter(Manga('Horimiya', 'MangaLife', 'http://manga.life/read-online/Horimiya'), 'Horimiya', 'url', 37, 0, )
         with zipfile.ZipFile(file_name) as archive:
             for entry in archive.infolist():
                 with archive.open(entry) as file:
                     img = Image.open(file)
-                    image_list.append(img)
-
-        self.page_list = image_list
+                    self.chapter.pages.append(img)
+        self.page_list = self.chapter.pages
         self.current_page = 0
 
     def get_current_page(self):

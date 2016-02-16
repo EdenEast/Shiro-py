@@ -4,6 +4,7 @@ from PyQt4 import QtGui, QtCore
 
 from kml import utility
 from kml.ui import manga_reader_model, manga_reader_view
+from kml.models.chapter import Chapter
 
 
 class MainWindowController(object):
@@ -36,6 +37,7 @@ class MainWindowController(object):
             self.view.set_viewer_content(self.model.get_current_page())
 
             self.model.current_directory = utility.Utility.get_dir_name(file_name)
+            self.set_window_title(self.model.chapter, self.model.current_page)
         except:
             QtGui.QMessageBox().warning(self.view, self.view.tr('Error'),
                                         self.view.tr('Error loading file' + file_name), QtGui.QMessageBox.Close)
@@ -45,6 +47,11 @@ class MainWindowController(object):
 
     def open_online(self):
         pass
+
+    def set_window_title(self, chapter, page_number):
+        text = chapter.parent.title + ' | ' + chapter.title + \
+            ' | (' + str(page_number + 1) + '/' + str(len(chapter.pages) + 1) + ') - kml'
+        self.view.setWindowTitle(text)
 
     # ----------------------------------------------------------------------------------
     # Interacting with pages
@@ -60,6 +67,7 @@ class MainWindowController(object):
 
         if value == maximum:
             self.model.next_page()
+            self.set_window_title(self.model.chapter, self.model.current_page)
             return
 
         # If we are not at the end of the page we need to move down the page
@@ -78,6 +86,7 @@ class MainWindowController(object):
                 self.view.current_view_container.verticalScrollBar().setValue(
                     self.view.current_view_container.verticalScrollBar().maximum()
                 )
+                self.set_window_title(self.model.chapter, self.model.current_page)
             return
 
         # If we are not at the beginning of the page we need to move the page up

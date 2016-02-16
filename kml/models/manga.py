@@ -61,3 +61,19 @@ class Manga(object):
     def set_current_chapter_index(self, chapter_index):
         if chapter_index in range(len(self.chapter_list) - 1):
             self.current_chapter_index = chapter_index
+
+    # ----------------------------------------------------------------------------------
+    # XML
+    def to_xml(self):
+        # This function will return the manga object as a xml string
+        s = '<manga title=\"{}\" manga_site=\"{}\" url=\"{}\">\n'.format(self.title, self.manga_site, self.url)
+        s += '<manga_information last_chapter_read=\"{}\" current_chapter_index=\"{}\" />\n' \
+            .format(self.last_chapter_read, self.current_chapter_index)
+        s += '    <chapters>\n'
+
+        for chapter in self.chapter_list:
+            s += '        ' + chapter.to_xml()
+
+        s += '    </chapters>\n'
+        s += '</manga>\n'
+        return s
