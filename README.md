@@ -11,5 +11,6 @@ KML is writen in in python 3.4 (writen for what PyQt4 is). To Build KML make sur
 MAKE SURE that you also have the dependencies needed to build it.
 
 ## Dependencies
-- PyQt4
-- BeautifulSoup4
+- [PyQt4](https://pypi.python.org/pypi/PyQt4)
+- [BeautifulSoup4](https://pypi.python.org/pypi/beautifulsoup4)
+- [Requests](https://pypi.python.org/pypi/requests)
