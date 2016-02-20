@@ -13,4 +13,5 @@ MAKE SURE that you also have the dependencies needed to build it.
 ## Dependencies
 - [PyQt4](https://pypi.python.org/pypi/PyQt4)
 - [BeautifulSoup4](https://pypi.python.org/pypi/beautifulsoup4)
+- [Pillow](https://pypi.python.org/pypi/Pillow)
 - [Requests](https://pypi.python.org/pypi/requests)
