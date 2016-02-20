@@ -1,13 +1,10 @@
 __author__ = 'Athena'
 
+from kml.models.manga import Manga, Chapter
 from kml.web import web_utility
-from kml.models.manga import Manga
-from kml.models.chapter import Chapter
-
+from io import BytesIO
 import urllib
-from io import BytesIO, StringIO
 import zipfile
-
 
 class MangaLife(object):
     _BASE_URL = 'http://manga.life'
@@ -114,9 +111,10 @@ class MangaLife(object):
 
         zip_file.close()
 
-        output = open('test_image_zip_file.zip', 'wb')
+        output = open(chapter.title + '.zip', 'wb')
         output.write(buffer.getvalue())
         output.close()
         buffer.close()
 
         return images
+

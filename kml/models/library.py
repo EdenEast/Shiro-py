@@ -1,81 +1,90 @@
 __author__ = 'Athena'
 
-from kml.models.manga import Manga
-from kml.models.chapter import Chapter
-from kml.models.data_model import MangaListViewModel
+from kml.models.gui_data_models import MangaListViewModel
+from kml.models.manga import Manga, Chapter
 from configparser import ConfigParser
 from bs4 import BeautifulSoup
+from PIL import Image
 import os
 
 class Library(object):
     def __init__(self):
         self.manga_list = []
         self.site_list = []
-        self.library_directory = ''
-        self.manga_list_model = MangaListViewModel()
+        self.covers = {}
+        self.libray_directory = ''
+        self.manga_model = MangaListViewModel()
 
     def load_library(self):
-        # Reading the settings file and getting the library directory
         if not os.path.isfile('settings.ini'):
-            print('[ERROR]: There is no settings.ini file')
+            print('[ERROR] There is no settings.ini file')
             return
 
         config = ConfigParser()
         config.read('settings.ini')
-        self.library_directory = config['Library']['library_directory']
-        self.library_directory = os.path.normpath(self.library_directory)
+        self.libray_directory = os.path.normpath(config['Library']['library_directory'])
 
-        # Checking to see if there is a library file
-        self.library_file_path = os.path.join(self.library_directory, 'library.dat')
-
-        # If there is not a library file then the library is empty and we dont have to load anything
-        if not os.path.isfile(self.library_file_path):
+        # Checking to see if there is a 'library.dat' file
+        library_path_file = os.path.join(self.libray_directory, 'library.dat')
+        if not os.path.isfile(library_path_file):
+            # Since that there is not a library file then the library folder is blank and we are done
             return
 
-        # @TODO: Load the library here
-        with open(self.library_file_path, 'r') as input:
-            data = input.read()
+        with open(library_path_file, 'r') as file:
+            data = file.read()
 
         soup = BeautifulSoup(data, 'html.parser')
 
-        manga_tags = soup.findAll('manga')
-        for mt in manga_tags:
+        for mt in soup.findAll('manga'):
             title = mt.get('title')
             url = mt.get('url')
             manga_site = mt.get('manga_site')
+            manga = Manga(title, url, manga_site)
 
-            manga = Manga(title, manga_site, url)
-
-            chapters = mt.select('chapter')
-            for c in chapters:
+            for c in mt.select('chapter'):
                 chapter_title = c.get('title')
                 chapter_url = c.get('url')
-                chapter_number = int(c.get('number'))
-                chapter_sub_number = int(c.get('sub_number'))
+                chapter_number = c.get('number')
+                chapter_sub_number = c.get('sub_number')
                 chapter_completed = c.get('completed') == 'True'
-                chapter_downloaded = c.get('downloaded') == 'True'
-
+                chapter_downloaded = c.get('download') == 'True'
                 chapter = Chapter(manga, chapter_title, chapter_url, chapter_number,
-                                  chapter_sub_number, 0, chapter_downloaded, chapter_completed)
+                                  chapter_sub_number, chapter_downloaded, chapter_completed)
                 manga.add_chapter(chapter)
+                # TODO: add chapter to manga table view model
 
-            self.add_manga(manga)
+            # Adding the manga to the list of manga and the model
+            # @CHECK if we just link the data of the library list of mangas to the listview model does adding to the
+            # manga list also add it to the model? (like it is a pointer to the list)
+            self.manga_list.append(manga)
+            self.manga_model.add_row(manga)
+
+            # Checking the Cover folder for a Cover with the manga's title on it
+            cover_file_path = os.path.join(self.libray_directory, '.Cover', (manga.title + '.jpg'))
+            if os.path.isfile(cover_file_path):
+                image = Image.open(cover_file_path)
+                image.thumbnail((200, 350), Image.ANTIALIAS)
+                self.covers[manga.title] = image
+
+
 
     def save_library(self):
-        library_file_name = 'library.dat'
+        file_name = 'library.dat'
 
-        # This will be the concatenation of all the manga's xml information
+        # This will be the concatenation of all of the manga's xml information
         text = ''
 
-        # looping through all of the manga objects in the list
         for manga in self.manga_list:
             text += manga.to_xml()
 
-        soup = BeautifulSoup(text, 'html.parser')
+        # If we want BeautifulSoup to prettify the output html/xml then set prettify to true
+        prettify = False
+        if prettify:
+            soup = BeautifulSoup(text, 'html.parser')
+            text = soup.prettify()
 
-        # Now save the text to the library_file_name
-        with open(os.path.join(self.library_directory, library_file_name), 'w') as output:
-            # output.write(soup.prettify(formatter='html'))
+        path = os.path.join(self.libray_directory, file_name)
+        with open(path, 'w') as output:
             output.write(text)
             output.close()
 
@@ -83,14 +92,17 @@ class Library(object):
         # Checking to see if the manga is part of the manga list
         duplicate = False
         for m in self.manga_list:
-            if manga.title == m.title:
+            if m.title == manga.title:
                 duplicate = True
                 break
+
         if duplicate:
-            print('[ERROR]: The manga is already in the list')
+            print('[ERROR] The manga is already in the list')
             return
+
         self.manga_list.append(manga)
-        self.manga_list_model.addRow(manga.title)
+        self.manga_model.add_row(manga)
+        # @CHECK add to model if it does not point like i am thinking it might
         self.manga_list.sort(key=lambda x: x.title, reverse=False)
 
     def remove_manga(self, manga):
@@ -101,4 +113,5 @@ class Library(object):
             if manga.title == title:
                 return manga
         return None
+
 
