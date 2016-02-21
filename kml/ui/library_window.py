@@ -3,7 +3,7 @@ __author__ = 'Athena'
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from kml.models.gui_data_models import MangaListViewModel, ChapterListViewModel
-from kml.web.site.mangalife import MangaLife
+from kml.ui.search_window import SearchWindowController
 from PIL.ImageQt import ImageQt
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -23,6 +23,10 @@ class LibraryWindowController(object):
             print('Saving the library file')
             self.library.save_library()
             QCoreApplication.instance().quit()
+
+    def search_online(self):
+        search_controller = SearchWindowController(self.library)
+        search_controller.show()
 
 # ----------------------------------------------------------------------------------------------------------------------
 # View
@@ -60,6 +64,7 @@ class LibraryWindowView(QMainWindow):
         self.action_search_online = QAction('Search online', self)
         self.action_search_online.setShortcut('Ctrl+S')
         self.action_search_online.setStatusTip('Search for manga online')
+        self.action_search_online.triggered.connect(self.controller.search_online)
 
         # Creating menu bar
         file_menu = self.menuBar().addMenu('File')

@@ -2,6 +2,7 @@ __author__ = 'Athena'
 
 from kml.models.gui_data_models import MangaListViewModel
 from kml.models.manga import Manga, Chapter
+from kml.web.site import mangalife
 from configparser import ConfigParser
 from bs4 import BeautifulSoup
 from PIL import Image
@@ -10,10 +11,14 @@ import os
 class Library(object):
     def __init__(self):
         self.manga_list = []
-        self.site_list = []
+        self.site_list = {}
         self.covers = {}
         self.libray_directory = ''
         self.manga_model = MangaListViewModel()
+        self.init_site_list()
+
+    def init_site_list(self):
+        self.site_list['MangaLife'] = mangalife.MangaLife()
 
     def load_library(self):
         if not os.path.isfile('settings.ini'):

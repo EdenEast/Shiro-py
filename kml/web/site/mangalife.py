@@ -2,11 +2,12 @@ __author__ = 'Athena'
 
 from kml.models.manga import Manga, Chapter
 from kml.web import web_utility
+from kml.web.site.base_site import BaseSite
 from io import BytesIO
 import urllib
 import zipfile
 
-class MangaLife(object):
+class MangaLife(BaseSite):
     _BASE_URL = 'http://manga.life'
     _DIRECTORY_URL = 'http://manga.life/directory/'
     _SEARCH_URL = 'http://manga.life/advanced-search/result.php?sortBy=alphabet&direction=' \
