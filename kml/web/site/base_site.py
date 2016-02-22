@@ -20,3 +20,7 @@ class BaseSite(metaclass=ABCMeta):
     @abstractmethod
     def download_chapter(self, chapter):
         pass
+
+    @abstractmethod
+    def get_list_search_results(self, search_term):
+        pass

@@ -147,6 +147,21 @@ class Chapter(object):
             return 'Yes'
         return 'No'
 
+    def get_file_name(self):
+        # Checking the length of the number string and adding zeros before it
+        l = len(str(self.number))
+        diff = 3 - l
+        if diff < 0:
+            diff = 0
+        s = '0' * diff + str(self.number)
+        if self.sub_number > 0:
+            s += '.' + str(self.sub_number)
+        s += ' ' + self.parent.title + '.zip'
+        return s
+
+
+
+
     # ----------------------------------------------------------------------------------
     # XML
     def to_xml(self):

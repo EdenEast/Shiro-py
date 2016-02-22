@@ -4,14 +4,14 @@ from kml.models.manga import Manga, Chapter
 from kml.web import web_utility
 from kml.web.site.base_site import BaseSite
 from io import BytesIO
+import os
 import urllib
 import zipfile
 
 class MangaLife(BaseSite):
     _BASE_URL = 'http://manga.life'
     _DIRECTORY_URL = 'http://manga.life/directory/'
-    _SEARCH_URL = 'http://manga.life/advanced-search/result.php?sortBy=alphabet&direction=' \
-                  'ASC&textOnly=no&resPerPage=20&page=1&seriesName='
+    _SEARCH_URL = 'http://manga.life/search/?q='
 
     def get_name(self):
         return 'MangaLife'
@@ -91,7 +91,17 @@ class MangaLife(BaseSite):
                 manga.add_chapter(chapter)
         manga.sort_chapters()
 
-    def download_chapter(self, chapter):
+    def download_chapter(self, chapter, library_directory=None):
+        # Checking to see if the library directory is passed in
+        if library_directory is not None:
+            file_path = os.path.join(library_directory, chapter.parent.title, chapter.get_file_name())
+        else:
+            file_path = os.path.join(chapter.parent.title, chapter.get_file_name())
+
+        # Checking to see if the file is already there
+        if os.path.isfile(file_path):
+            return
+
         soup = web_utility.get_soup_from_url(chapter.url)
 
         images = []
@@ -112,10 +122,25 @@ class MangaLife(BaseSite):
 
         zip_file.close()
 
-        output = open(chapter.title + '.zip', 'wb')
+        # Checking to see if the folder exists
+        folder = os.path.dirname(file_path)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
+        output = open(file_path, 'wb')
         output.write(buffer.getvalue())
         output.close()
         buffer.close()
 
         return images
 
+    def get_list_search_results(self, search_term):
+        ret = []
+        search_term = search_term.replace(' ', '+')
+        soup = web_utility.get_soup_from_url(MangaLife._SEARCH_URL + search_term)
+        links = soup.select('#content > p > a')
+        for link in links:
+            url = MangaLife._BASE_URL + link.get('href').replace('..', '')
+            title = link.text
+            ret.append([title, url, self])
+        return ret

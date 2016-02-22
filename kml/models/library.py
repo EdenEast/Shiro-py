@@ -52,7 +52,7 @@ class Library(object):
                 chapter_number = c.get('number')
                 chapter_sub_number = c.get('sub_number')
                 chapter_completed = c.get('completed') == 'True'
-                chapter_downloaded = c.get('download') == 'True'
+                chapter_downloaded = c.get('downloaded') == 'True'
                 chapter = Chapter(manga, chapter_title, chapter_url, chapter_number,
                                   chapter_sub_number, chapter_downloaded, chapter_completed)
                 manga.add_chapter(chapter)
