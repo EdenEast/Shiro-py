@@ -3,8 +3,9 @@ __author__ = 'Athena'
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from kml.models.gui_data_models import MangaListViewModel, ChapterListViewModel
-from kml.ui.search_window import SearchWindowController
+from kml.ui import search_window, download_window
 from PIL.ImageQt import ImageQt
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # Controller
@@ -25,8 +26,15 @@ class LibraryWindowController(object):
             QCoreApplication.instance().quit()
 
     def search_online(self):
-        search_controller = SearchWindowController(self.library)
+        search_controller = search_window.SearchWindowController(self.library)
         search_controller.show()
+
+    def download_chapters_from_selected_manga(self):
+        index = self.view.manga_list_view.selectionModel().currentIndex()
+        selected_manga = self.library.get_manga_by_title(self.view.manga_list_view.model().itemData(index)[0])
+        controller = download_window.DownloadWindowController(self.library, selected_manga)
+        controller.show()
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 # View
@@ -66,6 +74,10 @@ class LibraryWindowView(QMainWindow):
         self.action_search_online.setStatusTip('Search for manga online')
         self.action_search_online.triggered.connect(self.controller.search_online)
 
+        self.action_download_chapter_from_manga = QAction('Download Chapters', self)
+        self.action_download_chapter_from_manga.setStatusTip('Show download chapter window for selected manga')
+        self.action_download_chapter_from_manga.triggered.connect(self.controller.download_chapters_from_selected_manga)
+
         # Creating menu bar
         file_menu = self.menuBar().addMenu('File')
         file_menu.addAction(self.action_exit)
@@ -74,11 +86,13 @@ class LibraryWindowView(QMainWindow):
         library__menu.addAction(self.action_read_chapter)
         library__menu.addAction(self.action_search_online)
         library__menu.addAction(self.action_check_for_updates)
+        # library__menu.addAction(self.action_download_chapter_from_manga)
 
         tool_bar = self.addToolBar('Library')
         tool_bar.addAction(self.action_read_chapter)
         tool_bar.addAction(self.action_search_online)
         tool_bar.addAction(self.action_check_for_updates)
+        tool_bar.addAction(self.action_download_chapter_from_manga)
 
         # Create Widgets
         self.splitter = QSplitter(Qt.Horizontal)
@@ -117,7 +131,6 @@ class LibraryWindowView(QMainWindow):
         layout_widget.setLayout(hbox)
         self.setCentralWidget(layout_widget)
 
-
     def _centralize_window(self):
         frame_geometry = self.frameGeometry()
         monitor_screen_index = QApplication.desktop().screenNumber(QApplication.desktop().cursor().pos())
@@ -141,7 +154,6 @@ class LibraryWindowView(QMainWindow):
         if self.selected_manga.title in self.controller.library.covers:
             cover_image = self.controller.library.covers[self.selected_manga.title]
             self.cover_label.setPixmap(QPixmap.fromImage(ImageQt(cover_image).copy()))
-
 
 
 # ----------------------------------------------------------------------------------------------------------------------

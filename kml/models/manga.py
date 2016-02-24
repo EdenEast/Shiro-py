@@ -133,9 +133,9 @@ class Chapter(object):
         return len(self.pages)
 
     def get_number_string(self):
-        if self.sub_number != '0':
-            return self.number + '.' + self.sub_number
-        return self.number
+        if self.sub_number == '0' or self.sub_number == 0:
+            return self.number
+        return str(self.number) + '.' + str(self.sub_number)
 
     def get_download_string(self):
         if self.downloaded:

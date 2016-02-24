@@ -5,20 +5,16 @@ from PyQt4.QtCore import Qt
 
 
 class DownloadWindowController(object):
-    def __init__(self, library, url, manga_site):
+    def __init__(self, library, manga):
         self.library = library
-        self.url = url
-        self.manga_site = manga_site
+        self.manga = manga
         self.view = DownloadWindowView(self)
 
-        # Creating manga from url
-        self.manga = manga_site.create_manga_from_url(url)
         for chapter in self.manga.chapter_list:
             item = QListWidgetItem(chapter.title)
             # item.setFlags(item.flags() | Qt.Unchecked)
             # item.setCheckState(Qt.Unchecked)
             self.view.chapter_list.addItem(item)
-
 
     def show(self):
         self.view.show()
@@ -29,13 +25,13 @@ class DownloadWindowController(object):
     def download_chapters(self):
         # TODO: List of chapters that have have to download
         selected_chapters = self.view.chapter_list.selectedItems()
+        self.library.add_manga(self.manga)
         for selected in selected_chapters:
             chapter = self.manga.get_chapter_by_title(selected.text())
-            self.manga_site.download_chapter(chapter, self.library.libray_directory)
+            self.library.site_list[self.manga.manga_site].download_chapter(chapter, self.library.libray_directory)
             print('Downloading {}: Chapter {}'.format(chapter.parent.title, chapter.title))
             self.library.get_manga_by_title(self.manga.title).get_chapter_by_title(chapter.title).downloaded = True
         self.view.hide()
-
 
 
 class DownloadWindowView(QWidget):

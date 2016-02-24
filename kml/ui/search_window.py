@@ -3,6 +3,7 @@ __author__ = 'Athena'
 from PyQt4.QtGui import *
 from kml.ui import download_window
 
+
 class SearchWindowController(object):
     def __init__(self, library):
         self.library = library
@@ -31,7 +32,9 @@ class SearchWindowController(object):
         text = self.view.list.currentItem().text()
         for result in self.result_list:
             if result[0] == text:
-                manga_download_window = download_window.DownloadWindowController(self.library, result[1], result[2])
+                site = self.library.site_list[result[2].get_name()]
+                manga = site.create_manga_from_url(result[1])
+                manga_download_window = download_window.DownloadWindowController(self.library, manga)
                 manga_download_window.show()
                 self.hide()
 

@@ -71,8 +71,6 @@ class Library(object):
                 image.thumbnail((200, 350), Image.ANTIALIAS)
                 self.covers[manga.title] = image
 
-
-
     def save_library(self):
         file_name = 'library.dat'
 

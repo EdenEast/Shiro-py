@@ -22,10 +22,10 @@ class MangaLife(BaseSite):
 
         # Getting the title of the manga
         title = soup.find('title').text
-        title = title.split(' Manga - Read')[0].lstrip()
+        title = title.split('- Read ')[1].split(' Online Free')[0]
 
         # Create the new Manga object
-        manga = Manga(title, self.get_name(), url)
+        manga = Manga(title, url, self.get_name())
 
         # Finding all of the chapter links
         raw_link_list = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-9 > a')
