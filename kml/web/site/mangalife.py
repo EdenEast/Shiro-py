@@ -1,98 +1,123 @@
-__author__ = 'Athena'
 
-from kml.models.manga import Manga, Chapter
 from kml.web import web_utility
-from kml.web.site.base_site import BaseSite
+from kml.models import Manga, Chapter, hash_string
 from io import BytesIO
 import os
+import re
 import urllib
 import zipfile
 
-class MangaLife(BaseSite):
+
+class MangaLife(object):
     _BASE_URL = 'http://manga.life'
     _DIRECTORY_URL = 'http://manga.life/directory/'
     _SEARCH_URL = 'http://manga.life/search/?q='
+    _SITE_NAME = 'MangaLife'
 
-    def get_name(self):
-        return 'MangaLife'
+    def __init__(self, library):
+        self.library = library
 
-    def create_manga_from_url(self, url):
-        # soup = web_utility.get_soup_from_url(url)
-        soup = web_utility.get_pretty_soup_from_url(url)
+    @staticmethod
+    def get_name():
+        return MangaLife._SITE_NAME
 
-        # Getting the title of the manga
+    def create_manga_info_from_url(self, url):
+        soup, html = web_utility.get_soup_from_url(url)
+
+        # Getting the title of the series
+        # title = soup.title
         title = soup.find('title').text
         title = title.split('- Read ')[1].split(' Online Free')[0]
+        title = title.replace('\'', '')
 
-        # Create the new Manga object
-        manga = Manga(title, url, self.get_name())
+        # Getting the description of the series
+        description = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-12 span div div div')[0].text
+        description = description.replace('\'', '').replace('\"', '')
 
-        # Finding all of the chapter links
-        raw_link_list = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-9 > a')
+        # Getting the cover_image
+        cover_url = soup.select('body > div.container.container-main > div.well > div.row >'
+                                  ' div.col-lg-3.col-md-3.col-sm-3.hidden-xs > img')[0].get('src')
 
-        # Going through all of the chapters and creating each chapter
-        for link in raw_link_list:
-            # Getting the href of the chapter
-            href = MangaLife._BASE_URL + link.get('href')
+        # Create the image url from the manga url ang the cover url that i am given
+        ext = cover_url.rsplit('.', 1)[1]
+        cover_src = '{}/{}.{}'.format(cover_url.rsplit('/', 1)[0], url.rsplit('/', 1)[1], ext)
+
+        # Creating the manga object
+        manga = Manga(hash_string(title), title, url, description, cover_url, self.get_name())
+
+        # Finding all of the chapters
+        chapter_link_list = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-9 > a')
+
+        # Going though all of the chapters
+        for link in chapter_link_list:
+            # Getting chapter link
+            href = self._BASE_URL + link.get('href')
             if '/page-' in href:
                 href = href.split('/page-')[0]
-
-            # Finding the chapter number and seeing if there is a sub number
+            # Finding the chapter number
             raw_number = href.split('/chapter-')[1].split('/index-')[0]
             number = sub_number = '0'
-
-            # Checking to see if the raw_number has a decimal point
             if '.' in raw_number:
                 number, sub_number = raw_number.split('.')
             else:
                 number = raw_number
 
-            # Getting the chapter title and cleaning it up. Also @CHECK: do I have to remove ':' character?
             chapter_title = link.text.rstrip().lstrip()
 
-            chapter = Chapter(manga, chapter_title, href, int(number), int(sub_number))
+            chapter = Chapter(chapter_title, href, int(number), int(sub_number), False, False, manga)
             manga.add_chapter(chapter)
-        manga.sort_chapters()
+        manga.chapter_list.sort()
         return manga
 
     def update_manga(self, manga):
-        # Checking to see if the manga came from this site
-        if manga.manga_site != self.get_name():
-            print('[ERROR ', self.get_name(), '] Cannot update ', manga.title, ' it is from ', manga.manga_site)
+        if manga.site is not self.get_name():
+            print('[ERROR {}] Cannot update {} as it is from {}'.format(self.get_name(), manga.title, manga.site))
             return None
 
         soup = web_utility.get_soup_from_url(manga.url)
 
-        # Getting the list of chapter links
-        raw_link_list = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-9 > a')
+        chapter_collection = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-9 > a')
+        chapter_collection_size = len(chapter_collection)
 
-        # Checking to see if the are any new chapters that are not in the list
-        number_new_chapters = len(raw_link_list) - len(manga.chapter_list)
-        if number_new_chapters == 0:
-            return None
+        # Getting the number of chapters from the database
+        cursor = self.library.db.cursor()
+        db_chapter_count = cursor.execute('SELECT count(*) AS COUNT, * FROM chapter WHERE manga_id={}', manga.hash)
+        if db_chapter_count == chapter_collection_size:
+            return
 
-        new_chapter_count = 0
-        for link in raw_link_list:
-            # Getting the chapter title
-            chapter_title = link.text.rstrip().lstrip()
-            if not manga.is_in_chapter_list(chapter_title):
-                href = MangaLife._BASE_URL + link.get('href')
-                if '/page-' in href:
-                    href = href.split('/page-')[0]
+        # Getting the size difference of the site and the database
+        delta = chapter_collection_size - db_chapter_count
 
-                raw_number = href.split('/chapter-')[1].split('/index-')[0]
-                number = sub_number = '0'
-                if '.' in raw_number:
-                    number, sub_number = raw_number.split('.')[0]
-                else:
-                    number = raw_number
-                chapter = Chapter(manga, chapter_title, href, int(number), int(sub_number))
-                new_chapter_count += 1
-                manga.add_chapter(chapter)
-        manga.sort_chapters()
+        # Looping through the difference and adding them all to the database
+        index = chapter_collection_size
+        new_query = True
+        command = ''
+        for i in range(delta):
+            if new_query:
+                command = 'INSERT INTO chapter(title, url, number, sub_number, manga_id)'
+                new_query = False
+            else:
+                command += ' UNION'
+
+            href = chapter_collection[index]
+            if '/page-' in href:
+                href = href.split('/page-')[0]
+            raw_number = href.split('/chapter-')[1].split('/index-')[0]
+            if '.' in raw_number:
+                number, sub_number = raw_number.split('.')
+            else:
+                number = raw_number
+                sub_number = '0'
+            title = href.text.rstrip().lstrip()
+
+            command += " SELECT '{}' '{}' {} {} 0 0 {}".format(title, href, number, sub_number, manga.hash)
+            index += 1
+            chapter = Chapter(title, href, int(number), int(sub_number), False, False, manga)
+            manga.chapter_list.append(chapter)
+        cursor.execute(command)
+        self.library.db.commit()
 
     def download_chapter(self, chapter, library_directory=None):
-        # Checking to see if the library directory is passed in
         if library_directory is not None:
             file_path = os.path.join(library_directory, chapter.parent.title, chapter.get_file_name())
         else:
@@ -103,7 +128,6 @@ class MangaLife(BaseSite):
             return
 
         soup = web_utility.get_soup_from_url(chapter.url)
-
         images = []
         image_links = soup.findAll('img')
         for image in image_links:
@@ -111,15 +135,17 @@ class MangaLife(BaseSite):
             name = src.rsplit('/', 1)[1]
             download_image = urllib.request.urlopen(src)
             images.append([download_image, name])
-
-        # Testing to see if the images are downloading
-        # @NOTE: This works :) !!!!!!!!!!!!!!!!!!!!!!!
         buffer = BytesIO()
         zip_file = zipfile.ZipFile(buffer, 'w')
-
         for i in range(len(images)):
-            zip_file.writestr(images[i][1], images[i][0].read())
+            zip_file.writestr((images[i][1], images[i][0].read()))
 
+        # Saving the information on the chapter
+        info_text = '[Info]\nmanga={}\ntitle={}\nurl={}\nnumber={}\nsub_number={}\nmanga_site={}\n'.format(
+            chapter.parent.title, chapter.title, chapter.url, str(chapter.number),
+            str(chapter.sub_number), self.get_name()
+        )
+        zip_file.writestr('info.ini', info_text)
         zip_file.close()
 
         # Checking to see if the folder exists
@@ -132,12 +158,10 @@ class MangaLife(BaseSite):
         output.close()
         buffer.close()
 
-        return images
-
     def get_list_search_results(self, search_term):
         ret = []
         search_term = search_term.replace(' ', '+')
-        soup = web_utility.get_soup_from_url(MangaLife._SEARCH_URL + search_term)
+        soup, html = web_utility.get_soup_from_url(MangaLife._SEARCH_URL + search_term)
         links = soup.select('#content > p > a')
         for link in links:
             url = MangaLife._BASE_URL + link.get('href').replace('..', '')

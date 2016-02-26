@@ -1,38 +1,26 @@
 __author__ = 'Athena'
 
-from kml.models.library import Library
-from kml.web.site.mangalife import MangaLife
-from kml.ui import library_window, search_window
-from PyQt4 import QtGui, QtCore
+from kml import library
+from kml.web.site import mangalife
+from kml.ui import main_window
 import sys
 
+from PyQt4.QtGui import QApplication
+
+
 def main():
-    # Creating the library
-    library = Library()
-    library.load_library()
+    lib = library.Library()
+    lib.load()
 
-    app = QtGui.QApplication(sys.argv)
-    app.setApplicationName('Kindread Manga Library')
-    app.setApplicationVersion('0.0.1')
+    # ml = mangalife.MangaLife(lib)
+    # lib.add_manga(ml.create_manga_info_from_url('http://manga.life/read-online/Horimiya'))
+    # lib.add_manga(ml.create_manga_info_from_url('http://manga.life/read-online/GirlsOfTheWilds'))
+    # lib.add_manga(ml.create_manga_info_from_url('http://manga.life/read-online/GosuTheMaster'))
+    # lib.add_manga(ml.create_manga_info_from_url('http://manga.life/read-online/ReLIFE'))
 
-    # Creating the main window
-    main_window = library_window.LibraryWindowController(library)
-    main_window.view.setStyle(QtGui.QStyleFactory.create('cleanlook'))
-    # main_window.show()
-    sys.exit(app.exec())
-
-def testing():
-    library = Library()
-    library.load_library()
-
-    app = QtGui.QApplication(sys.argv)
-    app.setApplicationName('Kindread Manga Library')
-    app.setApplicationVersion('0.0.1')
-
-    window = search_window.SearchWindowController(library)
-    window.show()
+    app = QApplication(sys.argv)
+    window = main_window.MainWindow(lib)
     sys.exit(app.exec())
 
 if __name__ == '__main__':
     main()
-    # testing()
