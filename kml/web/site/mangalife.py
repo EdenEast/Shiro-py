@@ -127,7 +127,7 @@ class MangaLife(object):
         if os.path.isfile(file_path):
             return
 
-        soup = web_utility.get_soup_from_url(chapter.url)
+        soup, html = web_utility.get_soup_from_url(chapter.url)
         images = []
         image_links = soup.findAll('img')
         for image in image_links:
@@ -137,8 +137,10 @@ class MangaLife(object):
             images.append([download_image, name])
         buffer = BytesIO()
         zip_file = zipfile.ZipFile(buffer, 'w')
-        for i in range(len(images)):
-            zip_file.writestr((images[i][1], images[i][0].read()))
+        # for i in range(len(images)):
+        #     zip_file.writestr((images[i][1], images[i][0].read()))
+        for i in images:
+            zip_file.writestr(i[1], i[0].read())
 
         # Saving the information on the chapter
         info_text = '[Info]\nmanga={}\ntitle={}\nurl={}\nnumber={}\nsub_number={}\nmanga_site={}\n'.format(

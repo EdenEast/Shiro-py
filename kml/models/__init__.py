@@ -59,7 +59,7 @@ class Chapter(object):
         return str(self.number) + '.' + str(self.sub_number)
 
     def get_file_name(self):
-        l = len(self.number)
+        l = len(str(self.number))
         diff = 3 - l
         if diff < 0:
             diff = 0
@@ -67,3 +67,4 @@ class Chapter(object):
         if self.sub_number > 0:
             s += '.' + str(self.sub_number)
         s += ' {}.zip'.format(self.parent.title)
+        return s

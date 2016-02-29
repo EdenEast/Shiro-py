@@ -150,3 +150,4 @@ class Library(object):
             chapter = mangalife.Chapter(d[1], d[2], int(d[4]), int(d[5]), (d[6] == 1), (d[7] == 1), manga)
             manga.add_chapter(chapter)
         return manga
+

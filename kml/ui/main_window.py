@@ -21,17 +21,21 @@ class MainWindow(QMainWindow):
         self.manga_model.setQuery('SELECT title FROM manga ORDER BY title')
         self.chapter_model = QSqlQueryModel()
 
-        self.statusBar()
+        self.status_bar = self.statusBar()
+        self.status_bar.showMessage('testing')
 
         self.action_exit = QAction('Exit', self)
         self.action_search_new_manga = QAction('Search', self)
         self.action_search_new_manga.triggered.connect(self.search_new_manga_dialog)
+        self.action_download_all_chapters = QAction('Download All Chapters', self)
+        self.action_download_all_chapters.triggered.connect(self.download_all_chapters)
 
         self.file_menu = self.menuBar().addMenu('File')
         self.library_menu = self.menuBar().addMenu('Library')
 
         self.file_menu.addAction(self.action_exit)
         self.library_menu.addAction(self.action_search_new_manga)
+        self.library_menu.addAction(self.action_download_all_chapters)
 
         tool_bar = self.addToolBar('Library')
         tool_bar.addAction(self.action_search_new_manga)
@@ -99,3 +103,17 @@ class MainWindow(QMainWindow):
     def search_new_manga_dialog(self):
         self.window = search_window.SearchWindow(self.library, self)
         self.window.show()
+
+    def download_all_chapters(self):
+        index = self.manga_lv.selectionModel().currentIndex()
+        title = self.manga_lv.model().itemData(index)[0]
+        cursor = self.library.db.cursor()
+        cursor.execute('SELECT id FROM manga WHERE title=\'{}\''.format(title))
+        hash = cursor.fetchone()
+        manga = self.library.create_manga_from_db_by_title(title)
+        site = self.library.site_list[manga.site]
+        for chapter in manga.chapter_list:
+            self.status_bar.showMessage('Downloading {}: {}'.format(manga.title, chapter.title))
+            site.download_chapter(chapter, self.library.directory)
+            cmd = 'UPDATE chapter SET downloaded=1 WHERE manga_id={} AND title=\'{}\''.format(hash[0], chapter.title)
+            cursor.execute(cmd)
