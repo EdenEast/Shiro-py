@@ -28,6 +28,7 @@ class ReaderWindow(QWidget):
         self.current_page = 0
         self.fit_type = ReaderWindow._ORIGINAL_FIT
         self.rotate_angle = 0
+        self.back_normal = True
 
         self.view_container = kscrollviewer.KScrollViewer(self)
         self.setBackgroundRole(QPalette.Dark)
@@ -37,7 +38,7 @@ class ReaderWindow(QWidget):
         layout.setMargin(0)
         layout.addWidget(self.view_container)
         self.setLayout(layout)
-        self.setGeometry(0, 0, 800, 600)
+        self.setGeometry(0, 0, 800, 900)
         self._center_window()
         self._define_global_shortcuts()
         self.load_chapter(chapter)
@@ -46,6 +47,7 @@ class ReaderWindow(QWidget):
 
     def _define_global_shortcuts(self):
         sequence = {
+            'Ctrl+Q': self.close,
             'Ctrl+Shift+Left': self.prev_chapter,
             'Ctrl+Left': self.first_page,
             'Left': self.prev_page,
@@ -74,6 +76,10 @@ class ReaderWindow(QWidget):
         center_point = QApplication.desktop().screenGeometry(monitor_screen_index).center()
         frame_geometry.moveCenter(center_point)
         self.move(frame_geometry.topLeft())
+
+    def closeEvent(self, event):
+        # self.deleteLater()
+        event.accept()
 
     def load_chapter(self, chapter):
         file_path = os.path.join(Library.directory, chapter.parent.title, chapter.get_file_name())
@@ -137,6 +143,12 @@ class ReaderWindow(QWidget):
     def update_title(self):
         title = '{}: {}  ( {} | {} )'.format(self.manga.title, self.chapter.title, self.current_page + 1, len(self.pages))
         self.setWindowTitle(title)
+
+    def on_action_fullscreen(self):
+        if self.isFullScreen():
+            self.showNormal()
+        else:
+            self.showFullScreen()
 
     def next_page(self):
         # Getting the value of the current vertical scroll bar and checking to see
@@ -234,4 +246,12 @@ class ReaderWindow(QWidget):
     def best_fit(self):
         self.fit_type = ReaderWindow._BEST_FIT
         self.update_page()
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_F:
+            self.on_action_fullscreen()
+        if event.key() == Qt.Key_N:
+            self.goto_next_page()
+        if event.key() == Qt.Key_P:
+            self.goto_prev_page()
 
