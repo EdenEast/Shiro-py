@@ -52,8 +52,10 @@ class ReaderWindow(QWidget):
             'Right': self.next_page,
             'Ctrl+Right': self.last_page,
             'Ctrl+Shift+Right': self.next_chapter,
-            # 'Ctrl+R': controller.rotate_right,
-            # 'Ctrl+Shift+R': controller.rotate_left,
+            'Ctrl+R': self.rotate_right,
+            'Ctrl+Shift+R': self.rotate_left,
+            'Ctrl+B': self.first_page,
+            'Ctrl+E': self.last_page,
             # 'Ctrl+O': controller.open,
             '1': self.original_fit,
             '2': self.vertical_fit,
@@ -178,6 +180,10 @@ class ReaderWindow(QWidget):
             self.current_page += 1
             self.update_page()
         else:
+            # Setting the chapter that we just read to completed
+            Library.db.cursor().execute('UPDATE chapter SET completed=1 WHERE manga_id={} AND title=\'{}\''
+                                      .format(self.manga.hash, self.chapter.title))
+            Library.db.commit()
             self.next_chapter()
 
     def goto_prev_page(self):
@@ -193,10 +199,6 @@ class ReaderWindow(QWidget):
     def next_chapter(self):
         chapter = self.manga.next_chapter(self.chapter)
         if chapter != self.chapter:
-            # Setting the chapter that we just read to completed
-            Library.db.cursor().execute('UPDATE chapter SET completed=1 WHERE manga_id={} AND title=\'{}\''
-                                      .format(self.manga.hash, self.chapter.title))
-            Library.db.commit()
             self.chapter = chapter
             self.load_chapter(chapter)
             self.update_page()
