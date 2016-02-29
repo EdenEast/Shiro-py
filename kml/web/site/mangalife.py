@@ -17,6 +17,7 @@ class MangaLife(object):
     def __init__(self, library):
         self.library = library
 
+
     @staticmethod
     def get_name():
         return MangaLife._SITE_NAME
@@ -80,7 +81,7 @@ class MangaLife(object):
         chapter_collection_size = len(chapter_collection)
 
         # Getting the number of chapters from the database
-        cursor = self.library.db.cursor()
+        cursor = self.db.cursor()
         db_chapter_count = cursor.execute('SELECT count(*) AS COUNT, * FROM chapter WHERE manga_id={}', manga.hash)
         if db_chapter_count == chapter_collection_size:
             return
@@ -117,11 +118,8 @@ class MangaLife(object):
         cursor.execute(command)
         self.library.db.commit()
 
-    def download_chapter(self, chapter, library_directory=None):
-        if library_directory is not None:
-            file_path = os.path.join(library_directory, chapter.parent.title, chapter.get_file_name())
-        else:
-            file_path = os.path.join(chapter.parent.title, chapter.get_file_name())
+    def download_chapter(self, chapter):
+        file_path = os.path.join(self.library.directory, chapter.parent.title, chapter.get_file_name())
 
         # Checking to see if the file is already there
         if os.path.isfile(file_path):

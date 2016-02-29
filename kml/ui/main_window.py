@@ -1,19 +1,19 @@
-from kml.ui import search_window
+from kml.ui import search_window, reading_window
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4.QtSql import *
 from PIL import ImageQt
 import os
+from kml.library import Library
 
 
 class MainWindow(QMainWindow):
-    def __init__(self, library):
+    def __init__(self):
         super(MainWindow, self).__init__()
-        self.library = library
 
         # Setting up Qt's database access objects
         self.qdb = QSqlDatabase.addDatabase('QSQLITE')
-        self.qdb.setDatabaseName(os.path.join(library.directory, 'Library.db'))
+        self.qdb.setDatabaseName(os.path.join(Library.directory, 'Library.db'))
         self.qdb.open()
 
         # Creating models for the manga_list_view and chapter_table_view
@@ -25,10 +25,13 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage('testing')
 
         self.action_exit = QAction('Exit', self)
+        self.connect(self.action_exit, SIGNAL('triggered()'), SLOT('close()'))
         self.action_search_new_manga = QAction('Search', self)
         self.action_search_new_manga.triggered.connect(self.search_new_manga_dialog)
         self.action_download_all_chapters = QAction('Download All Chapters', self)
         self.action_download_all_chapters.triggered.connect(self.download_all_chapters)
+        self.action_read_chapter = QAction('Read Chapter', self)
+        self.action_read_chapter.triggered.connect(self.read_chapter)
 
         self.file_menu = self.menuBar().addMenu('File')
         self.library_menu = self.menuBar().addMenu('Library')
@@ -36,6 +39,7 @@ class MainWindow(QMainWindow):
         self.file_menu.addAction(self.action_exit)
         self.library_menu.addAction(self.action_search_new_manga)
         self.library_menu.addAction(self.action_download_all_chapters)
+        self.library_menu.addAction(self.action_read_chapter)
 
         tool_bar = self.addToolBar('Library')
         tool_bar.addAction(self.action_search_new_manga)
@@ -72,6 +76,17 @@ class MainWindow(QMainWindow):
         self._centralize_window()
         self.show()
 
+    def closeEvent(self, event):
+        # Checking to see if the user wants to quit
+        quit_msg = 'Are you sure you want to Quit?'
+        reply = QMessageBox.question(self, 'Close Application', quit_msg, QMessageBox.Yes, QMessageBox.No)
+        if reply == QMessageBox.No:
+            event.ignore()
+            return
+        Library.close()
+        self.qdb.close()
+        event.accept()
+
     def _centralize_window(self):
         frame_geometry = self.frameGeometry()
         monitor_screen_index = QApplication.desktop().screenNumber(QApplication.desktop().cursor().pos())
@@ -84,12 +99,12 @@ class MainWindow(QMainWindow):
         # @TODO: update the cover label
         index = self.manga_lv.selectionModel().currentIndex()
         title = self.manga_lv.model().itemData(index)[0]
-        self.cover_label.setPixmap(QPixmap.fromImage(ImageQt.ImageQt(self.library.covers[title]).copy()))
+        self.cover_label.setPixmap(QPixmap.fromImage(ImageQt.ImageQt(Library.covers[title]).copy()))
 
     def update_chapter_lv(self):
         index = self.manga_lv.selectionModel().currentIndex()
         title = self.manga_lv.model().itemData(index)[0]
-        cursor = self.library.db.cursor()
+        cursor = Library.db.cursor()
         cursor.execute('SELECT id FROM manga WHERE title=\'{}\''.format(title))
         h = cursor.fetchone()
         cmd = 'SELECT title, number, completed, downloaded FROM chapter WHERE manga_id={} ORDER BY number'.format(h[0])
@@ -101,19 +116,33 @@ class MainWindow(QMainWindow):
         self.manga_lv.setModel(self.manga_model)
 
     def search_new_manga_dialog(self):
-        self.window = search_window.SearchWindow(self.library, self)
+        self.window = search_window.SearchWindow(Library, self)
         self.window.show()
 
     def download_all_chapters(self):
         index = self.manga_lv.selectionModel().currentIndex()
         title = self.manga_lv.model().itemData(index)[0]
-        cursor = self.library.db.cursor()
+        cursor = Library.db.cursor()
         cursor.execute('SELECT id FROM manga WHERE title=\'{}\''.format(title))
         hash = cursor.fetchone()
-        manga = self.library.create_manga_from_db_by_title(title)
-        site = self.library.site_list[manga.site]
+        manga = Library.create_manga_from_db_by_title(title)
+        site = Library.site_list[manga.site]
         for chapter in manga.chapter_list:
             self.status_bar.showMessage('Downloading {}: {}'.format(manga.title, chapter.title))
-            site.download_chapter(chapter, self.library.directory)
+            site.download_chapter(chapter)
             cmd = 'UPDATE chapter SET downloaded=1 WHERE manga_id={} AND title=\'{}\''.format(hash[0], chapter.title)
             cursor.execute(cmd)
+        Library.db.commit()
+
+    def read_chapter(self):
+        # Getting the current manga
+        index = self.manga_lv.selectionModel().currentIndex()
+        title = self.manga_lv.model().itemData(index)[0]
+        manga = Library.create_manga_from_db_by_title(title)
+
+        index = self.chapter_tv.selectionModel().currentIndex()
+        title = self.chapter_tv.model().data(index)
+
+        chapter = manga.get_chapter_by_title(title)
+        self.reader_view_window = reading_window.ReaderWindow(manga, chapter)
+

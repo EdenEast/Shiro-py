@@ -1,12 +1,12 @@
 from PyQt4.QtGui import *
-from PyQt4.QtCore import *
+from kml.library import Library
 
 
 class SearchWindow(QWidget):
     def __init__(self, library, parent):
         super(SearchWindow, self).__init__()
-        self.library = library
         self.parent = parent
+        self.result_list = []
 
         # Create widgets
         self.combo_box = QComboBox(self)
@@ -27,8 +27,8 @@ class SearchWindow(QWidget):
         vbox.addWidget(self.add_button)
         self.setLayout(vbox)
 
-        for key in self.library.site_list.keys():
-            self.combo_box.addItem(self.library.site_list[key].get_name())
+        for key in Library.site_list.keys():
+            self.combo_box.addItem(Library.site_list[key].get_name())
 
         self.setGeometry(0, 0, 600, 350)
         self._centralize_window()
@@ -43,8 +43,9 @@ class SearchWindow(QWidget):
     def search(self):
         term = self.search_term.text()
         site_text = self.combo_box.currentText()
-        site = self.library.site_list[site_text]
+        site = Library.site_list[site_text]
         self.result_list = site.get_list_search_results(term)
+        self.list.clear()
         for result in self.result_list:
             self.list.addItem(result[0])
 
@@ -52,8 +53,8 @@ class SearchWindow(QWidget):
         text = self.list.currentItem().text()
         for result in self.result_list:
             if result[0] == text:
-                site = self.library.site_list[result[2].get_name()]
+                site = Library.site_list[result[2].get_name()]
                 manga = site.create_manga_info_from_url(result[1])
-                self.library.add_manga(manga)
+                Library.add_manga(manga)
                 self.parent.update_manga_lv()
                 self.close()

@@ -25,6 +25,12 @@ class Manga(object):
     def remove_chapter(self, chapter):
         self.chapter_list.remove(chapter)
 
+    def get_chapter_by_title(self, title):
+        for chapter in self.chapter_list:
+            if chapter.title == title:
+                return chapter
+        return None
+
     # This function will take the current chapter that the library is on and return the next one
     def next_chapter(self, chapter):
         index = self.chapter_list.index(chapter)
