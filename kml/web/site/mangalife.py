@@ -1,7 +1,9 @@
 
 from kml.web import web_utility
+from kml import bg_file_io
 from kml.models import Manga, Chapter, hash_string
 from io import BytesIO
+import threading
 import os
 import re
 import urllib
@@ -157,6 +159,59 @@ class MangaLife(object):
         output.write(buffer.getvalue())
         output.close()
         buffer.close()
+
+    def download_chapter_threaded(self, chapter):
+        file_path = os.path.join(self.library.directory, chapter.parent.title, chapter.get_file_name())
+
+        folder = os.path.dirname(file_path)
+        if not os.path.exists(folder):
+            os.makedirs(folder)
+
+        if os.path.isfile(file_path):
+            return
+
+        soup, html = web_utility.get_soup_from_url(chapter.url)
+        thread_list = []
+        images = []
+        lock = threading.Lock()
+        image_links = soup.findAll('img')
+        for link in image_links:
+            t = threading.Thread(target=web_utility.download_image_link, args=(link, images, lock))
+            t.daemon = True
+            t.start()
+            thread_list.append(t)
+
+        for thread in thread_list:
+            thread.join()
+
+        # Saving the information on the chapter
+        info_text = '[Info]\nmanga={}\ntitle={}\nurl={}\nnumber={}\nsub_number={}\nmanga_site={}\n'.format(
+            chapter.parent.title, chapter.title, chapter.url, str(chapter.number),
+            str(chapter.sub_number), self.get_name()
+        )
+
+        bg_file_io.push(bg_file_io.save_to_archive, (images, file_path, info_text))
+
+    # @staticmethod
+    # def save_image_to_file(args):
+    #     images = args[0]
+    #     file_path = args[1]
+    #     buffer = BytesIO()
+    #     zip_file = zipfile.ZipFile(buffer, 'w')
+    #     for image in images:
+    #         zip_file.writestr(image[0], image[1])
+    #     zip_file.close()
+    #     with open(file_path, 'wb') as archive:
+    #         archive.write(buffer.getvalue())
+    #     buffer.close()
+
+    # @staticmethod
+    # def download_image_link(link, image_list, lock):
+    #     src = link.get('src')
+    #     name = src.rsplit('/', 1)[1]
+    #     image = urllib.request.urlopen(src).read()
+    #     with lock:
+    #         image_list.append((name, image))
 
     def get_list_search_results(self, search_term):
         ret = []

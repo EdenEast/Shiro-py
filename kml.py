@@ -1,5 +1,6 @@
 __author__ = 'Athena'
 
+from kml import bg_file_io
 from kml.library import Library
 from kml.web.site import mangalife
 from kml.ui import main_window, reading_window
@@ -9,6 +10,7 @@ from PyQt4.QtGui import QApplication
 
 
 def main():
+    bg_file_io.initialize()
     Library.init_site_list()
     Library.load()
 

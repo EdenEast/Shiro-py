@@ -2,6 +2,7 @@ from bs4 import BeautifulSoup
 import requests
 import re
 import shutil
+import urllib
 
 
 def get_soup_from_url(url):
@@ -29,3 +30,11 @@ def download_image(file, src):
             shutil.copyfileobj(r.raw, f)
     else:
         print('[ERROR download_image] error code {}'.format(r.status_code))
+
+
+def download_image_link(link, image_list, lock):
+    src = link.get('src')
+    name = src.rsplit('/', 1)[1]
+    image = urllib.request.urlopen(src).read()
+    with lock:
+        image_list.append((name, image))

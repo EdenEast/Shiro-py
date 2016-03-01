@@ -5,7 +5,7 @@ def hash_string(string):
     m = hashlib.md5()
     m.update(str.encode(string))
     h = int(m.hexdigest(), 16) & 0xFFFFFFFFFFFFFF
-    print('{} : {}'.format(string, h))
+    # print('{} : {}'.format(string, h))
     return h
 
 

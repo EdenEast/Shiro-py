@@ -1,4 +1,5 @@
 from kml.ui import search_window, reading_window
+from kml import bg_file_io
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4.QtSql import *
@@ -84,6 +85,7 @@ class MainWindow(QMainWindow):
             event.ignore()
             return
         Library.close()
+        bg_file_io.join()
         self.qdb.close()
         event.accept()
 
@@ -128,11 +130,12 @@ class MainWindow(QMainWindow):
         manga = Library.create_manga_from_db_by_title(title)
         site = Library.site_list[manga.site]
         for chapter in manga.chapter_list:
-            self.status_bar.showMessage('Downloading {}: {}'.format(manga.title, chapter.title))
-            site.download_chapter(chapter)
+            self.statusBar().showMessage('Downloading {}: {}'.format(manga.title, chapter.title))
+            site.download_chapter_threaded(chapter)
             cmd = 'UPDATE chapter SET downloaded=1 WHERE manga_id={} AND title=\'{}\''.format(hash[0], chapter.title)
             cursor.execute(cmd)
-        Library.db.commit()
+            Library.db.commit()
+        self.statusBar().showMessage('Downloading {} Complete.'.format(manga.title), 2000)
 
     def read_chapter(self):
         # Getting the current manga
