@@ -1,5 +1,6 @@
 from PyQt4.QtGui import QScrollArea
 from PyQt4 import QtCore
+from PyQt4.QtGui import QColor
 
 
 class KScrollViewer(QScrollArea):
@@ -10,6 +11,9 @@ class KScrollViewer(QScrollArea):
         self.setCursor(QtCore.Qt.OpenHandCursor)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.change_background_color(QColor('#262626'))  # Revolution dark grey
+        # self.change_background_color(QColor('#304050'))  # Atom Blue
+
 
     def reset_scroll_position(self):
         self.verticalScrollBar().setValue(0)

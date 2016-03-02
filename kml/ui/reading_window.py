@@ -28,9 +28,11 @@ class ReaderWindow(QWidget):
         self.current_page = 0
         self.fit_type = ReaderWindow._ORIGINAL_FIT
         self.rotate_angle = 0
-        self.back_normal = True
+        self.color_index = 0
 
         self.view_container = kscrollviewer.KScrollViewer(self)
+        # self.view_container.change_background_color(QColor('#304050')) # Atom blue
+        self.view_container.change_background_color(QColor('#262626'))
         self.setBackgroundRole(QPalette.Dark)
         self.view_container.setWidget(self.label)
         self.view_container.setAlignment(Qt.AlignCenter)
@@ -52,6 +54,7 @@ class ReaderWindow(QWidget):
             'Ctrl+Left': self.first_page,
             'Left': self.prev_page,
             'Right': self.next_page,
+            'Space': self.next_page,
             'Ctrl+Right': self.last_page,
             'Ctrl+Shift+Right': self.next_chapter,
             'Ctrl+R': self.rotate_right,
@@ -59,6 +62,7 @@ class ReaderWindow(QWidget):
             'Ctrl+B': self.first_page,
             'Ctrl+E': self.last_page,
             # 'Ctrl+O': controller.open,
+            'Ctrl+G': self.change_background_color,
             '1': self.original_fit,
             '2': self.vertical_fit,
             '3': self.horizontal_fit,
@@ -246,6 +250,23 @@ class ReaderWindow(QWidget):
     def best_fit(self):
         self.fit_type = ReaderWindow._BEST_FIT
         self.update_page()
+
+    def change_background_color(self):
+        if self.color_index == 4:
+            self.color_index = 0
+        else:
+            self.color_index += 1
+
+        if self.color_index == 0:  # Revolution dark grey
+            self.view_container.change_background_color(QColor('#262626'))
+        elif self.color_index == 1:  # Atom Blue
+            self.view_container.change_background_color(QColor('#304050'))
+        elif self.color_index == 2:  # mod8 dark blue grey
+            self.view_container.change_background_color(QColor('#2B303B'))
+        elif self.color_index == 3:
+            self.view_container.change_background_color(QColor('#322D29'))
+        elif self.color_index == 4:
+            self.view_container.change_background_color(QColor('#AE4F4F'))
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key_F:
