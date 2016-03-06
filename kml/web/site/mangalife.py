@@ -39,14 +39,14 @@ class MangaLife(object):
 
         # Getting the cover_image
         cover_url = soup.select('body > div.container.container-main > div.well > div.row >'
-                                  ' div.col-lg-3.col-md-3.col-sm-3.hidden-xs > img')[0].get('src')
+                                ' div.col-lg-3.col-md-3.col-sm-3.hidden-xs > img')[0].get('src')
 
         # Create the image url from the manga url ang the cover url that i am given
         ext = cover_url.rsplit('.', 1)[1]
         cover_src = '{}/{}.{}'.format(cover_url.rsplit('/', 1)[0], url.rsplit('/', 1)[1], ext)
 
         # Creating the manga object
-        manga = Manga(hash_string(title), title, url, description, cover_url, self.get_name())
+        manga = Manga(hash_string(title), title, url, description, cover_url, self)
 
         # Finding all of the chapters
         chapter_link_list = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-9 > a')
@@ -212,6 +212,15 @@ class MangaLife(object):
     #     image = urllib.request.urlopen(src).read()
     #     with lock:
     #         image_list.append((name, image))
+
+    def get_all_pages_from_chapter(self, url):
+        result = []
+        soup, html = web_utility.get_soup_from_url(url)
+        image_links = soup.findAll('img')
+        for link in image_links:
+            src = link.get('src')
+            result.append(src)
+        return result
 
     def get_list_search_results(self, search_term):
         ret = []

@@ -98,7 +98,7 @@ class Library(object):
         # The manga is not part of the database and needs to be added
         cmd = 'INSERT INTO manga (id, title, description, url, cover_url, site) VALUES' \
               '({}, \'{}\', \'{}\', \'{}\', \'{}\', \'{}\')'.format(manga.hash, manga.title, manga.description,
-                                                                    manga.url, manga.cover_url, manga.site)
+                                                                    manga.url, manga.cover_url, manga.site.get_name())
         cursor.execute(cmd)
 
         # Adding the chapters to the chapter table
@@ -142,7 +142,7 @@ class Library(object):
         if data is None:
             return None
 
-        manga = models.Manga(data[0], data[1], data[3], data[2], data[4], data[5])
+        manga = models.Manga(data[0], data[1], data[3], data[2], data[4], Library.site_list[data[5]])
 
         # Selecting all of the chapters of the manga
         cursor.execute('SELECT * FROM chapter WHERE manga_id = {} ORDER BY number'.format(manga.hash))

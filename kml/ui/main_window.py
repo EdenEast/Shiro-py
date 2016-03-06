@@ -25,6 +25,9 @@ class MainWindow(QMainWindow):
         self.status_bar = self.statusBar()
         self.status_bar.showMessage('testing')
 
+        self.setWindowIcon(QIcon('icon.png'))
+        self.setWindowTitle('Kindred Manga Reader')
+
         self.action_exit = QAction('Exit', self)
         self.connect(self.action_exit, SIGNAL('triggered()'), SLOT('close()'))
         self.action_search_new_manga = QAction('Search', self)
@@ -128,7 +131,7 @@ class MainWindow(QMainWindow):
         cursor.execute('SELECT id FROM manga WHERE title=\'{}\''.format(title))
         hash = cursor.fetchone()
         manga = Library.create_manga_from_db_by_title(title)
-        site = Library.site_list[manga.site]
+        site = manga.site
         for chapter in manga.chapter_list:
             self.statusBar().showMessage('Downloading {}: {}'.format(manga.title, chapter.title))
             site.download_chapter_threaded(chapter)
@@ -144,8 +147,10 @@ class MainWindow(QMainWindow):
         manga = Library.create_manga_from_db_by_title(title)
 
         index = self.chapter_tv.selectionModel().currentIndex()
+        index = self.chapter_tv.model().index(index.row(), 0)
         title = self.chapter_tv.model().data(index)
 
         chapter = manga.get_chapter_by_title(title)
-        self.reader_view_window = reading_window.ReaderWindow(manga, chapter)
+        self.reader_view_window = reading_window.ReaderWindow(chapter)
+        self.reader_view_window.show()
 

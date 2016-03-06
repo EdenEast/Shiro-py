@@ -27,6 +27,7 @@ class SearchWindow(QWidget):
         vbox.addWidget(self.add_button)
         self.setLayout(vbox)
 
+        self.setWindowIcon(QIcon('icon.png'))
         for key in Library.site_list.keys():
             self.combo_box.addItem(Library.site_list[key].get_name())
 
@@ -50,6 +51,8 @@ class SearchWindow(QWidget):
             self.list.addItem(result[0])
 
     def add_manga(self):
+        if self.list.currentItem() is None:
+            return
         text = self.list.currentItem().text()
         for result in self.result_list:
             if result[0] == text:
