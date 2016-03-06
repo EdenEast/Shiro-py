@@ -90,6 +90,8 @@ class MainWindow(QMainWindow):
             'Right': self.move_right,
             'R': self.read_chapter,
             'S': self.search_new_manga_dialog,
+            'U': self.update_manga,
+            'Ctrl+U': self.check_updates_on_manga_library,
         }
 
         for key, value in sequence.items():
@@ -171,6 +173,22 @@ class MainWindow(QMainWindow):
         chapter = manga.get_chapter_by_title(title)
         self.reader_view_window = reading_window.ReaderWindow(chapter)
         self.reader_view_window.show()
+
+    def update_manga(self):
+        index = self.manga_lv.selectionModel().currentIndex()
+        title = self.manga_lv.model().itemData(index)[0]
+        self.statusBar().showMessage('Updating {}...'.format(title), 2000)
+        chapters = Library.update_manga_by_title(title)
+        self.statusBar().showMessage('Updated {} -> [ {} ] new chapter(s).'.format(title, len(chapters)), 5000)
+        self.update_chapter_lv()
+
+    def check_updates_on_manga_library(self):
+        size = self.manga_lv.model().rowCount()
+        for i in range(size):
+            title = self.manga_lv.model().record(i).value("title")
+            self.statusBar().showMessage('Updating {}...'.format(title), 2000)
+            chapter = Library.update_manga_by_title(title)
+            self.statusBar().showMessage('Updated {} -> [ {} ] new chapter(s)'.format(title, len(chapter)), 5000)
 
     def move_left(self):
         self.manga_lv.setFocus()

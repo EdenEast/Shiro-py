@@ -72,37 +72,37 @@ class MangaLife(object):
         manga.chapter_list.sort()
         return manga
 
+    # @TODO: return the chapters that have been added to the manga along with the new manga object as a tulip. Then the
+    # library will update the database and the site is not responsible for it. Then the site will not need a reference
+    # to the library and will not have to pass it in. @NOTE @DOME
     def update_manga(self, manga):
-        if manga.site is not self.get_name():
+        if manga.site.get_name() is not self.get_name():
             print('[ERROR {}] Cannot update {} as it is from {}'.format(self.get_name(), manga.title, manga.site))
             return None
 
-        soup = web_utility.get_soup_from_url(manga.url)
+        updated_chapter_list = []
+
+        soup, html = web_utility.get_soup_from_url(manga.url)
 
         chapter_collection = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-9 > a')
+        chapter_collection.reverse()
         chapter_collection_size = len(chapter_collection)
 
         # Getting the number of chapters from the database
-        cursor = self.db.cursor()
-        db_chapter_count = cursor.execute('SELECT count(*) AS COUNT, * FROM chapter WHERE manga_id={}', manga.hash)
+        db_chapter_count = len(manga.chapter_list)
+
         if db_chapter_count == chapter_collection_size:
-            return
+            return []
 
         # Getting the size difference of the site and the database
         delta = chapter_collection_size - db_chapter_count
 
         # Looping through the difference and adding them all to the database
-        index = chapter_collection_size
-        new_query = True
-        command = ''
-        for i in range(delta):
-            if new_query:
-                command = 'INSERT INTO chapter(title, url, number, sub_number, manga_id)'
-                new_query = False
-            else:
-                command += ' UNION'
+        index = db_chapter_count
 
-            href = chapter_collection[index]
+        for i in range(delta):
+            link = chapter_collection[index]
+            href = self._BASE_URL + link.get('href')
             if '/page-' in href:
                 href = href.split('/page-')[0]
             raw_number = href.split('/chapter-')[1].split('/index-')[0]
@@ -111,14 +111,12 @@ class MangaLife(object):
             else:
                 number = raw_number
                 sub_number = '0'
-            title = href.text.rstrip().lstrip()
-
-            command += " SELECT '{}' '{}' {} {} 0 0 {}".format(title, href, number, sub_number, manga.hash)
-            index += 1
+            title = link.text.rstrip().lstrip()
             chapter = Chapter(title, href, int(number), int(sub_number), False, False, manga)
-            manga.chapter_list.append(chapter)
-        cursor.execute(command)
-        self.library.db.commit()
+            updated_chapter_list.append(chapter)
+            manga.add_chapter(chapter)
+            index += 1
+        return updated_chapter_list
 
     def download_chapter(self, chapter):
         file_path = os.path.join(self.library.directory, chapter.parent.title, chapter.get_file_name())

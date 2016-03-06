@@ -112,7 +112,7 @@ class Library(object):
             else:
                 cmd += ' UNION'
 
-            cmd += " SELECT \'{}\', \'{}\', {}, {}, {}, {}, {}, {}".format(
+            cmd += " SELECT '{}', '{}', {}, {}, {}, {}, {}, {}".format(
                 c.title, c.url, float(c.get_number_string()), c.number, c.sub_number,
                 int(c.downloaded), int(c.completed), c.parent.hash)
         cursor.execute(cmd)
@@ -151,3 +151,42 @@ class Library(object):
             chapter = models.Chapter(d[1], d[2], int(d[4]), int(d[5]), (d[6] == 1), (d[7] == 1), manga)
             manga.add_chapter(chapter)
         return manga
+
+    @staticmethod
+    def update_manga_by_title(title):
+        cursor = Library.db.cursor()
+        manga = Library.create_manga_from_db_by_title(title)
+
+        # updating the manga
+        updated_chapter_list = manga.site.update_manga(manga)
+        size = len(updated_chapter_list)
+        if size <= 0:
+            return updated_chapter_list
+
+        batch_count = 0
+        batch_size = 50
+        new_query = True
+        cmd = ''
+        for c in updated_chapter_list:
+            if new_query:
+                cmd = 'INSERT INTO chapter(title, url, number, prim_number, sub_number,' \
+                          ' downloaded, completed, manga_id)'
+                new_query = False
+            else:
+                cmd += ' UNION'
+
+            cmd += " SELECT '{}', '{}', {}, {}, {}, {}, {}, {}".format(
+                c.title, c.url, float(c.get_number_string()), c.number, c.sub_number, int(c.downloaded),
+                int(c.completed), c.parent.hash
+            )
+            batch_count += 1
+            if batch_count == batch_size:
+                cursor.execute(cmd)
+                Library.db.commit()
+                new_query = True
+                batch_count = 0
+
+        if batch_count != 0:
+            cursor.execute(cmd)
+            Library.db.commit()
+        return updated_chapter_list
