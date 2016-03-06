@@ -75,10 +75,27 @@ class MainWindow(QMainWindow):
         splitter.addWidget(self.chapter_tv)
         splitter.setStretchFactor(1, 10)
 
+        self.global_shortcuts = []
+        self.define_global_shortcut()
+
         self.setCentralWidget(splitter)
         self.setGeometry(0, 0, 1200, 800)
         self._centralize_window()
         self.show()
+
+    def define_global_shortcut(self):
+        sequence = {
+            'Q': self.close,
+            'Left': self.move_left,
+            'Right': self.move_right,
+            'R': self.read_chapter,
+            'S': self.search_new_manga_dialog,
+        }
+
+        for key, value in sequence.items():
+            s = QShortcut(QKeySequence(key), self, value)
+            s.setEnabled(True)
+            self.global_shortcuts.append(s)
 
     def closeEvent(self, event):
         # Checking to see if the user wants to quit
@@ -101,7 +118,6 @@ class MainWindow(QMainWindow):
 
     def on_action_manga_lv(self, index):
         self.update_chapter_lv()
-        # @TODO: update the cover label
         index = self.manga_lv.selectionModel().currentIndex()
         title = self.manga_lv.model().itemData(index)[0]
         self.cover_label.setPixmap(QPixmap.fromImage(ImageQt.ImageQt(Library.covers[title]).copy()))
@@ -149,8 +165,16 @@ class MainWindow(QMainWindow):
         index = self.chapter_tv.selectionModel().currentIndex()
         index = self.chapter_tv.model().index(index.row(), 0)
         title = self.chapter_tv.model().data(index)
+        if title is None:
+            return
 
         chapter = manga.get_chapter_by_title(title)
         self.reader_view_window = reading_window.ReaderWindow(chapter)
         self.reader_view_window.show()
+
+    def move_left(self):
+        self.manga_lv.setFocus()
+
+    def move_right(self):
+        self.chapter_tv.setFocus()
 

@@ -22,7 +22,7 @@ class ReaderWindow(QMainWindow):
 
     def define_global_shortcuts(self):
         sequence = {
-            'Ctrl+Q': self.close,
+            'Q': self.close,
             'Ctrl+Shift+Left': self.view_container.prev_chapter,
             'Ctrl+Left': self.view_container.first_page,
             'Left': self.view_container.page_up,
