@@ -22,7 +22,6 @@ class ReaderWindow(QMainWindow):
 
     def define_global_shortcuts(self):
         sequence = {
-            'Q': self.close,
             'Ctrl+Shift+Left': self.view_container.prev_chapter,
             'Ctrl+Left': self.view_container.first_page,
             'Left': self.view_container.page_up,
@@ -34,10 +33,12 @@ class ReaderWindow(QMainWindow):
             'Ctrl+Shift+R': self.view_container.rotate_left,
             'Ctrl+B': self.view_container.first_page,
             'Ctrl+E': self.view_container.last_page,
+            'M': self.switch_viewing_modes,
             '1': self.view_container.original_fit,
             '2': self.view_container.vertical_fit,
             '3': self.view_container.horizontal_fit,
             '4': self.view_container.best_fit,
+            'Q': self.close,
         }
 
         for key, value in sequence.items():
@@ -85,3 +86,17 @@ class ReaderWindow(QMainWindow):
 
     def resizeEvent(self, event):
         self.view_container.reload()
+
+    def switch_viewing_modes(self):
+        if type(self.view_container) == kviewers.KPageViewer:
+            self.load_chapter_online(self.chapter)
+            self.global_shortcuts = []
+            self.define_global_shortcuts()
+        else:
+            file_name = os.path.join(Library.directory, self.chapter.parent.title, self.chapter.get_file_name())
+            if not os.path.isfile(file_name):
+                return
+            self.load_chapter_offline(self.chapter)
+            self.global_shortcuts = []
+            self.define_global_shortcuts()
+
