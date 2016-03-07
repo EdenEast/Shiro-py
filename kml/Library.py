@@ -38,7 +38,7 @@ class Library(object):
         data_base_file = os.path.join(Library.directory, 'Library.db')
         if not os.path.isfile(data_base_file):
             # If there is no database file then need to create one
-            Library.db = sqlite3.connect(data_base_file)
+            Library.db = sqlite3.connect(data_base_file, check_same_thread=False)
             cursor = Library.db.cursor()
             cursor.execute("""CREATE TABLE manga
 (
@@ -65,7 +65,7 @@ class Library(object):
                            )
             Library.db.commit()
         else:
-            Library.db = sqlite3.connect(data_base_file)
+            Library.db = sqlite3.connect(data_base_file, check_same_thread=False)
 
         # Checking to see if there is a '.Cover' folder in the library directory
         cover_folder = os.path.join(Library.directory, '.Cover')

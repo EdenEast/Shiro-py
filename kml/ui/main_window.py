@@ -1,5 +1,5 @@
 from kml.ui import search_window, reading_window
-from kml import bg_file_io
+from kml import bg_file_io, bg_downloaded
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 from PyQt4.QtSql import *
@@ -92,6 +92,8 @@ class MainWindow(QMainWindow):
             'S': self.search_new_manga_dialog,
             'U': self.update_manga,
             'Ctrl+U': self.check_updates_on_manga_library,
+            'D': self.download_all_chapters,
+            # 'Ctrl+D': self.stop_downloading, # @NOT WORKING
         }
 
         for key, value in sequence.items():
@@ -145,18 +147,14 @@ class MainWindow(QMainWindow):
     def download_all_chapters(self):
         index = self.manga_lv.selectionModel().currentIndex()
         title = self.manga_lv.model().itemData(index)[0]
-        cursor = Library.db.cursor()
-        cursor.execute('SELECT id FROM manga WHERE title=\'{}\''.format(title))
-        hash = cursor.fetchone()
         manga = Library.create_manga_from_db_by_title(title)
-        site = manga.site
-        for chapter in manga.chapter_list:
-            self.statusBar().showMessage('Downloading {}: {}'.format(manga.title, chapter.title))
-            site.download_chapter_threaded(chapter)
-            cmd = 'UPDATE chapter SET downloaded=1 WHERE manga_id={} AND title=\'{}\''.format(hash[0], chapter.title)
-            cursor.execute(cmd)
-            Library.db.commit()
-        self.statusBar().showMessage('Downloading {} Complete.'.format(manga.title), 2000)
+
+        bg_downloaded.download_manga(manga, self.statusBar())
+        bg_downloaded.start()
+
+    def stop_downloading(self):
+        if bg_downloaded.is_running():
+            bg_downloaded.force_stop()
 
     def read_chapter(self):
         # Getting the current manga
