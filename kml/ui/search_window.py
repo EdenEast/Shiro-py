@@ -12,6 +12,7 @@ class SearchWindow(QWidget):
         self.combo_box = QComboBox(self)
         self.search_term = QLineEdit(self)
         self.search_term.returnPressed.connect(self.search)
+        self.search_term.setFocus()
         self.list = QListWidget(self)
         self.add_button = QPushButton('Add Manga', self)
         self.add_button.clicked.connect(self.add_manga)

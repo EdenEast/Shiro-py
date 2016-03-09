@@ -31,7 +31,8 @@ class MangaLife(object):
         # title = soup.title
         title = soup.find('title').text
         title = title.split('- Read ')[1].split(' Online Free')[0]
-        title = title.replace('\'', '')
+        title = re.sub("[\':]", '', title)
+        # title = title.replace('\'', '')
 
         # Getting the description of the series
         description = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-12 span div div div')[0].text
@@ -224,9 +225,18 @@ class MangaLife(object):
         ret = []
         search_term = search_term.replace(' ', '+')
         soup, html = web_utility.get_soup_from_url(MangaLife._SEARCH_URL + search_term)
-        links = soup.select('#content > p > a')
-        for link in links:
-            url = MangaLife._BASE_URL + link.get('href').replace('..', '')
-            title = link.text
-            ret.append([title, url, self])
+        search_result_hl = soup.select('body > div.container.container-main > div > '
+                                       'div.col-lg-8.col-md-8.col-sm-12.col-xs-12 > div.well > h1')
+        if search_result_hl:
+            links = soup.select('#content > p > a')
+            for link in links:
+                url = MangaLife._BASE_URL + link.get('href').replace('..', '')
+                title = link.text
+                ret.append([title, url, self])
+        else:
+            title_tag = soup.select('div.col-lg-8.col-md-8.col-sm-8.col-xs-12 > h1')
+            title = title_tag[0].text
+            chapters = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-9 > a')[0]
+            href = MangaLife._BASE_URL + chapters.get('href').replace('..', '').split('/chapter-')[0]
+            ret.append([title, href, self])
         return ret
