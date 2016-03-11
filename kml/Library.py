@@ -96,9 +96,9 @@ class Library(object):
             return
 
         # The manga is not part of the database and needs to be added
-        cmd = 'INSERT INTO manga (id, title, description, url, cover_url, site) VALUES' \
-              '({}, \'{}\', \'{}\', \'{}\', \'{}\', \'{}\')'.format(manga.hash, manga.title, manga.description,
-                                                                    manga.url, manga.cover_url, manga.site.get_name())
+        cmd = "INSERT INTO manga (id, title, description, url, cover_url, site) VALUES" \
+              "({}, '{}', '{]', '{}', '{}', '{}')".format(manga.hash, manga.title, manga.description,
+                                                          manga.url, manga.cover_url, manga.site.get_name())
         cursor.execute(cmd)
 
         # Adding the chapters to the chapter table
@@ -125,6 +125,14 @@ class Library(object):
         image = Image.open(cover_file)
         image.thumbnail((200, 350))
         Library.covers[manga.title] = image
+
+        # Adding an info file to the manga folder
+        text = 'title={}\nurl={}\ncover_url={}\ndescription={}\nsite={}\n'.format(
+            manga.title, manga.url, manga.cover_url, manga.description, manga.site
+        )
+        info_title = manga.title + '.info'
+        with open(info_title, 'w') as info:
+            info.write(info_title)
 
     @staticmethod
     def remove_manga(manga):
@@ -156,6 +164,18 @@ class Library(object):
     def update_manga_by_title(title):
         cursor = Library.db.cursor()
         manga = Library.create_manga_from_db_by_title(title)
+
+        folder = os.path.join(Library.directory, manga.title)
+        if not os.path.isdir(folder):
+            os.mkdir(folder)
+
+        # Adding an info file to the manga folder
+        text = 'title={}\nurl={}\ncover_url={}\ndescription={}\nsite={}\n'.format(
+            manga.title, manga.url, manga.cover_url, manga.description, manga.site
+        )
+        info_title = os.path.join(Library.directory, manga.title, manga.title + '.info')
+        with open(info_title, 'w') as info:
+            info.write(text)
 
         # updating the manga
         updated_chapter_list = manga.site.update_manga(manga)
@@ -189,4 +209,5 @@ class Library(object):
         if batch_count != 0:
             cursor.execute(cmd)
             Library.db.commit()
+
         return updated_chapter_list

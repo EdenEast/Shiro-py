@@ -66,3 +66,11 @@ def save_to_archive(args):
     with open(file_path, 'wb') as archive:
         archive.write(buffer.getvalue())
     buffer.close()
+
+
+def save_manga_info(args):
+    text = args[0]
+    file_path = args[1]
+
+    with open(file_path, 'w') as info_file:
+        info_file.write(text)
