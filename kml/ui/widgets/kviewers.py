@@ -9,19 +9,22 @@ import zipfile
 
 
 class KPageViewer(QScrollArea):
-    def __init__(self, parent, chapter=None):
+    def __init__(self, parent, chapter=None, current_page=0):
         super(KPageViewer, self).__init__()
         # This is the page label that will have the page image
         self._parent = parent
         self.label = QLabel()
         self.chapter = chapter
-        self.current_page = 0
+        self.current_page = current_page
         self.pages = []
         self.fit_type = 0
         self.rotate_angle = 0
 
         if self.chapter:
             self.load_chapter(chapter)
+        if current_page != 0:
+            self.current_page = current_page
+            self.set_content(self.get_current_page())
 
         self.drag_mouse = False
         self.drag_position = {'x': 0, 'y': 0}
@@ -34,8 +37,11 @@ class KPageViewer(QScrollArea):
         style = "QWidget { background-color: %s }" % color.name()
         self.setStyleSheet(style)
 
-    def reset_scroll_position(self):
+    def scroll_to_top(self):
         self.verticalScrollBar().setValue(0)
+
+    def scroll_to_bottom(self):
+        self.verticalScrollBar().setValue(self.verticalScrollBar().maximum())
 
     def change_background_color(self, color):
         style = "QWidget { background-color: %s }" % color.name()
@@ -180,7 +186,7 @@ class KPageViewer(QScrollArea):
         if content:
             self.label.setPixmap(content)
             self.label.resize(content.size())
-            self.reset_scroll_position()
+            self.scroll_to_top()
             self.update_title()
 
     def reload(self):
@@ -217,6 +223,302 @@ class KPageViewer(QScrollArea):
             transform = QTransform().rotate(self.rotate_angle)
             pix_map = QPixmap(pix_map.transformed(transform))
         return pix_map
+
+
+class KDoublePageViewer(QScrollArea):
+    def __init__(self, parent, chapter=None, current_page=0):
+        super(KDoublePageViewer, self).__init__()
+        # Soring if we are displaying two pages or one horizontal page
+        self.showing_two_pages = False
+
+        # Storing all of the pages
+        self.pages = []
+        self.fit_type = 1
+
+        # These are the two page labels that will hold the pages
+        self.left_page = QLabel()
+        self.right_page = QLabel()
+        self.hbox = QHBoxLayout(self)
+        self.hbox.addWidget(self.left_page)
+        self.hbox.addWidget(self.right_page)
+        self.hbox.setAlignment(QtCore.Qt.AlignCenter)
+        self.hbox.setMargin(0)
+        container = QWidget()
+        container.setLayout(self.hbox)
+        self.setWidgetResizable(True)
+        self.setWidget(container)
+
+        # Saving the window as the parent of the scroll area
+        self._parent = parent
+        self.chapter = chapter
+        self.current_page = current_page
+        self.right_to_left = True
+        self.load_chapter(chapter)
+        self.current_page = current_page
+
+        self.drag_mouse = False
+        self.drag_position = {'x': 0, 'y': 0}
+        self.setCursor(QtCore.Qt.OpenHandCursor)
+        # self.setWidget(self.label)
+        self.setAlignment(QtCore.Qt.AlignCenter)
+        self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        # self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        # self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
+        color = QColor('#262626')
+        style = "QWidget { background-color: %s }" % color.name()
+        self.setStyleSheet(style)
+        self.reload()
+
+    # ---------------------------------------------------------------------------------------------------------------
+    # Mouse and update functions
+    def scroll_to_top(self):
+        self.verticalScrollBar().setValue(self.verticalScrollBar().minimum())
+
+    def scroll_to_bottom(self):
+        self.verticalScrollBar().setValue(self.verticalScrollBar().maximum())
+
+    def change_background_color(self, color):
+        style = "QWidget { background-color: %s }" % color.name()
+        self.setStyleSheet(style)
+
+    def mousePressEvent(self, *args, **kwargs):
+        self.drag_mouse = True
+        self.drag_position['x'] = args[0].x()
+        self.drag_position['y'] = args[0].y()
+        self.setCursor(QtCore.Qt.ClosedHandCursor)
+        super(KDoublePageViewer, self).mousePressEvent(*args, **kwargs)
+
+    def mouseMoveEvent(self, *args, **kwargs):
+        if self.drag_mouse:
+            scroll_position = {
+                'x': self.horizontalScrollBar().sliderPosition(),
+                'y': self.verticalScrollBar().sliderPosition()
+            }
+            new_x = scroll_position['x'] + self.drag_position['x'] - args[0].x()
+            new_y = scroll_position['y'] + self.drag_position['y'] - args[0].y()
+
+            self.horizontalScrollBar().setSliderPosition(new_x)
+            self.verticalScrollBar().setSliderPosition(new_y)
+
+            self.drag_position['x'] = args[0].x()
+            self.drag_position['y'] = args[0].y()
+        super(KDoublePageViewer, self).mouseMoveEvent(*args, **kwargs)
+
+    def mouseReleaseEvent(self, *args, **kwargs):
+        self.drag_mouse = False
+        self.setCursor(QtCore.Qt.OpenHandCursor)
+
+    # ---------------------------------------------------------------------------------------------------------------
+    # Chapter and page functions
+    def load_chapter(self, chapter):
+        self.chapter = chapter
+        self.current_page = 0
+        file_name = os.path.join(Library.directory, chapter.parent.title, chapter.get_file_name())
+        with zipfile.ZipFile(file_name) as archive:
+            self.pages.clear()
+            for entry in archive.infolist():
+                with archive.open(entry) as file:
+                    if 'ini' not in file.name:
+                        self.pages.append(Image.open(file))
+        self.reload()
+
+    # ---------------------------------------------------------------------------------------------------------------
+    # Display functions
+    def reload(self):
+        self.set_content(self.get_current_pages())
+        self.update_window_title()
+
+    def update_window_title(self):
+        if self.showing_two_pages:
+            if self.right_to_left:
+                title = '{}: {} ( {} & {} | {} ) [R - L]'.format(
+                    self.chapter.parent.title, self.chapter.title, self.current_page + 2, self.current_page + 1,
+                    len(self.pages))
+            else:
+                title = '{}: {} ( {} & {} | {} ) [L - R]'.format(
+                    self.chapter.parent.title, self.chapter.title, self.current_page + 1, self.current_page + 2,
+                    len(self.pages))
+        else:
+            title = '{}: {} ( {} | {} )'.format(self.chapter.parent.title, self.chapter.title,
+                                                self.current_page + 1, len(self.pages))
+        self._parent.setWindowTitle(title)
+
+    def get_current_pages(self):
+        image_qt = ImageQt.ImageQt(self.pages[self.current_page])
+        page_one = QPixmap.fromImage(image_qt.copy())
+        ratio = page_one.width() / page_one.height()
+        if ratio > 1 or self.current_page + 1 >= len(self.pages):  # The image is landscape or the last page
+            page_one = self.resize_full_page(page_one)
+            self.showing_two_pages = False
+            return page_one, None
+        else:
+            if self.current_page + 1 < len(self.pages):
+                image_qt = ImageQt.ImageQt(self.pages[self.current_page + 1])
+                page_two = QPixmap.fromImage(image_qt.copy())
+                page_one, page_two = self.resize_page((page_one, page_two))
+                self.showing_two_pages = True
+                return page_one, page_two
+
+    def set_content(self, tulip):
+        if self.showing_two_pages:
+            page_one = tulip[0]
+            page_two = tulip[1]
+            self.right_page.show()
+            if self.right_to_left:
+                self.right_page.setPixmap(page_one)
+                self.left_page.setPixmap(page_two)
+            else:
+                self.left_page.setPixmap(page_one)
+                self.right_page.setPixmap(page_two)
+            self.right_page.resize(page_one.size())
+            self.left_page.resize(page_two.size())
+        else:
+            self.left_page.setPixmap(tulip[0])
+            self.right_page.hide()
+            self.left_page.resize(tulip[0].size())
+
+    def resize_page(self, pix_map_tulip):
+        page_one = pix_map_tulip[0]
+        page_two = pix_map_tulip[1]
+
+        if self.fit_type == 1:  # VERTICAL FIT
+            height = (self.height() - 2)
+            page_one = page_one.scaledToHeight(height, QtCore.Qt.SmoothTransformation)
+            page_two = page_two.scaledToHeight(height, QtCore.Qt.SmoothTransformation)
+        elif self.fit_type == 2:  # HORIZONTAL FIT
+            width = self.width() / 2
+            page_one = page_one.scaledToWidth(width, QtCore.Qt.SmoothTransformation)
+            page_two = page_two.scaledToWidth(width, QtCore.Qt.SmoothTransformation)
+        elif self.fit_type == 3:  # BEST FIT
+            width = (self.width() * 0.90) / 2
+            page_one = page_one.scaledToWidth(width, QtCore.Qt.SmoothTransformation)
+            page_two = page_two.scaledToWidth(width, QtCore.Qt.SmoothTransformation)
+        return page_one, page_two
+
+    def resize_full_page(self, pix_map):
+        if self.fit_type == 1:  # VERTICAL FIT
+            pix_map = pix_map.scaledToHeight(self.size().height() - 2, QtCore.Qt.SmoothTransformation)
+        elif self.fit_type == 2: # HORIZONTAL FIT
+            pix_map = pix_map.scaledToWidth(self.size().width(), QtCore.Qt.SmoothTransformation)
+        elif self.fit_type == 3: # BEST FIT
+            ratio = pix_map.width() / pix_map.height()
+            if ratio < 1:
+                pix_map = pix_map.scaledToWidth(self.size().width() * 0.8, QtCore.Qt.SmoothTransformation)
+            else:
+                pix_map = pix_map.scaledToHeight(self.size().height() * 0.95, QtCore.Qt.SmoothTransformation)
+        return pix_map
+
+    # ---------------------------------------------------------------------------------------------------------------
+    # Page functions
+    def page_down(self):
+        value = self.verticalScrollBar().value()
+        maximum = self.verticalScrollBar().maximum()
+
+        if value == maximum:
+            self.next_page()
+            return
+
+        page_step = self.verticalScrollBar().pageStep()
+        page_step -= page_step * 0.15
+        self.verticalScrollBar().setValue(value + page_step)
+
+    def page_up(self):
+        value = self.verticalScrollBar().value()
+        minimum = self.verticalScrollBar().minimum()
+
+        if value == minimum:
+            self.prev_page()
+            return
+
+        page_step = self.verticalScrollBar().pageStep()
+        page_step -= page_step * 0.15
+        self.verticalScrollBar().setValue(value - page_step)
+
+    def next_page(self):
+        size = len(self.pages)
+        if self.showing_two_pages:
+            page = self.current_page + 1
+            if page < size - 1:
+                self.current_page += 2
+                self.reload()
+                self.scroll_to_top()
+            else:
+                Library.db.cursor().execute("UPDATE chapter SET completed=1 WHERE manga_id={} AND title='{}'"
+                                            .format(self.chapter.parent.hash, self.chapter.title))
+                Library.db.commit()
+                self.next_chapter()
+        else:
+            if self.current_page < size - 1:
+                self.current_page += 1
+                self.reload()
+                self.scroll_to_top()
+            else:
+                Library.db.cursor().execute("UPDATE chapter SET completed=1 WHERE manga_id={} AND title='{}'"
+                                            .format(self.chapter.parent.hash, self.chapter.title))
+                Library.db.commit()
+                self.next_chapter()
+
+    def prev_page(self):
+        if self.showing_two_pages:
+            page = self.current_page - 2
+            if page >= 0:
+                self.current_page -= 2
+                self.reload()
+                self.scroll_to_bottom()
+            else:
+                self.prev_chapter()
+        else:
+            if self.current_page > 0:
+                self.current_page -= 1
+                self.reload()
+                self.scroll_to_bottom()
+            else:
+                self.prev_chapter()
+
+    def next_chapter(self):
+        chapter = self.chapter.parent.next_chapter(self.chapter)
+        if chapter != self.chapter:
+            self.load_chapter(chapter)
+            self.current_page = 0
+            self.scroll_to_top()
+
+    def prev_chapter(self):
+        chapter = self.chapter.parent.prev_chapter(self.chapter)
+        if chapter != self.chapter:
+            self.load_chapter(chapter)
+            self.last_page()
+            self.scroll_to_bottom()
+
+    def first_page(self):
+        self.current_page = 0
+        self.reload()
+
+    def last_page(self):
+        self.current_page = len(self.pages) - 2
+        self.reload()
+
+    def rotate_left(self):
+        pass
+
+    def rotate_right(self):
+        pass
+
+    # There really cant be a original fit for this one as the pages done line up
+    def original_fit(self):
+        pass
+
+    def vertical_fit(self):
+        self.fit_type = 1
+        self.reload()
+
+    def horizontal_fit(self):
+        self.fit_type = 2
+        self.reload()
+
+    def best_fit(self):
+        self.fit_type = 3
+        self.reload()
 
 
 class KWebViewer(QWebView):

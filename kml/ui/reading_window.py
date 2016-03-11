@@ -33,6 +33,7 @@ class ReaderWindow(QMainWindow):
             'Ctrl+Shift+R': self.view_container.rotate_left,
             'Ctrl+B': self.view_container.first_page,
             'Ctrl+E': self.view_container.last_page,
+            'D': self.switch_double_page,
             'M': self.switch_viewing_modes,
             '1': self.view_container.original_fit,
             '2': self.view_container.vertical_fit,
@@ -90,13 +91,29 @@ class ReaderWindow(QMainWindow):
     def switch_viewing_modes(self):
         if type(self.view_container) == kviewers.KPageViewer:
             self.load_chapter_online(self.chapter)
-            self.global_shortcuts = []
-            self.define_global_shortcuts()
         else:
             file_name = os.path.join(Library.directory, self.chapter.parent.title, self.chapter.get_file_name())
             if not os.path.isfile(file_name):
                 return
             self.load_chapter_offline(self.chapter)
-            self.global_shortcuts = []
-            self.define_global_shortcuts()
+        self.global_shortcuts = []
+        self.define_global_shortcuts()
+
+    def switch_double_page(self):
+        typ = type(self.view_container)
+        if typ == kviewers.KWebViewer:
+            return
+
+        current_page = self.view_container.current_page
+        chapter = self.view_container.chapter
+        if typ == kviewers.KPageViewer:
+            self.view_container = kviewers.KDoublePageViewer(self, chapter, current_page)
+            self.view_container.reload()
+            self.view_container.scroll_to_top()
+        else:
+            self.view_container = kviewers.KPageViewer(self, chapter, current_page)
+        self.setCentralWidget(self.view_container)
+        self.global_shortcuts = []
+        self.define_global_shortcuts()
+
 
