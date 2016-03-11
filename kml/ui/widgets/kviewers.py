@@ -263,6 +263,11 @@ class KWebViewer(QWebView):
             html += '\t\t<p class="imagePage"><img src="{}"></p>\n'.format(page)
         html += self.ending_html
         self.setHtml(html)
+        self.update_window_title()
+
+    def update_window_title(self):
+        text = '{}: {}'.format(self.chapter.parent.title, self.chapter.title)
+        self._parent.setWindowTitle(text)
 
     def calculate_page_step(self):
         # http://stackoverflow.com/questions/22035363/formula-for-content-step-of-scrollbar

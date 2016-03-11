@@ -89,6 +89,7 @@ class MainWindow(QMainWindow):
             'Left': self.move_left,
             'Right': self.move_right,
             'R': self.read_chapter,
+            'CTRL+R': self.read_from_last_chapter,
             'S': self.search_new_manga_dialog,
             'U': self.update_manga,
             'Ctrl+U': self.check_updates_on_manga_library,
@@ -171,6 +172,17 @@ class MainWindow(QMainWindow):
         chapter = manga.get_chapter_by_title(title)
         self.reader_view_window = reading_window.ReaderWindow(chapter)
         self.reader_view_window.show()
+
+    def read_from_last_chapter(self):
+        # Getting the current manga
+        index = self.manga_lv.selectionModel().currentIndex()
+        title = self.manga_lv.model().itemData(index)[0]
+        manga = Library.create_manga_from_db_by_title(title)
+
+        chapter = manga.get_next_chapter_to_read()
+        self.reader_view_window = reading_window.ReaderWindow(chapter)
+        self.reader_view_window.show()
+
 
     def update_manga(self):
         index = self.manga_lv.selectionModel().currentIndex()

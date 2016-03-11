@@ -45,6 +45,12 @@ class Manga(object):
             return self.chapter_list[index - 1]
         return chapter
 
+    def get_next_chapter_to_read(self):
+        for chapter in self.chapter_list:
+            if not chapter.completed:
+                return chapter
+        return self.chapter_list[len(self.chapter_list) - 1]
+
 
 class Chapter(object):
     def __init__(self, title, url, number, sub_number, downloaded, completed, parent):
