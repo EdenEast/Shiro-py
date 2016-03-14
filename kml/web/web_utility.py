@@ -38,3 +38,12 @@ def download_image_link(link, image_list, lock):
     image = urllib.request.urlopen(src).read()
     with lock:
         image_list.append((name, image))
+
+
+def download_image_from_src(src):
+    r = requests.get(src, stream=True, headers={'User-agent': 'Mozilla/5.0'})
+    if r.status_code == 200:
+        r.raw.decode_content = True
+        return r.raw
+    else:
+        print('[ERROR download_image] error code {}'.format(r.status_code))

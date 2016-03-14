@@ -3,7 +3,7 @@ __author__ = 'Athena'
 from kml import bg_file_io
 from kml.library import Library
 from kml.web.site import mangalife
-from kml.ui import main_window, reading_window
+from kml.ui import main_window, reading_window, window_main
 import sys
 
 from PyQt4.QtGui import *
@@ -21,7 +21,7 @@ def main():
     # lib.add_manga(ml.create_manga_info_from_url('http://manga.life/read-online/GosuTheMaster'))
     # lib.add_manga(ml.create_manga_info_from_url('http://manga.life/read-online/ReLIFE'))
 
-    manga = Library.create_manga_from_db_by_title('Gosu (The Master)')
+    # manga = Library.create_manga_from_db_by_title('Gosu (The Master)')
 
     app = QApplication(sys.argv)
     window = main_window.MainWindow()
@@ -90,10 +90,15 @@ def testing():
     Library.load()
 
     app = QApplication(sys.argv)
-    window = Window()
+    window = window_main.MainWindowRedesign()
     window.show()
     sys.exit(app.exec())
 
 if __name__ == '__main__':
-    main()
-    # testing()
+    # main()
+    testing()
+
+"""
+Something similar to what i am trying to do on osx https://github.com/DrabWeb/Komikan
+MyAnimeList package documentation http://python-mal.readthedocs.org/en/latest/getting_started.html
+"""
