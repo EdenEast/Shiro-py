@@ -83,7 +83,7 @@ class KPageViewer(QScrollArea):
             for entry in archive.infolist():
                 with archive.open(entry) as file:
                     if '.ini' not in file.name:
-                        self.pages.append(Image.open(file))
+                        self.pages.append(Image.open(file).convert('RGB'))
         self.set_content(self.get_current_page())
 
     def page_down(self):
@@ -176,8 +176,7 @@ class KPageViewer(QScrollArea):
         self.set_content(self.get_current_page())
 
     def get_current_page(self):
-        image_qt = ImageQt.ImageQt(self.pages[self.current_page])
-        pix_map = QPixmap.fromImage(image_qt.copy())
+        pix_map = ImageQt.toqpixmap(self.pages[self.current_page])
         pix_map = self.rotate_page(pix_map)
         pix_map = self.resize_page(pix_map)
         return pix_map
@@ -320,7 +319,7 @@ class KDoublePageViewer(QScrollArea):
             for entry in archive.infolist():
                 with archive.open(entry) as file:
                     if 'ini' not in file.name:
-                        self.pages.append(Image.open(file))
+                        self.pages.append(Image.open(file).convert('RGB'))
         self.reload()
 
     # ---------------------------------------------------------------------------------------------------------------
@@ -345,12 +344,10 @@ class KDoublePageViewer(QScrollArea):
         self._parent.setWindowTitle(title)
 
     def get_current_pages(self):
-        image_qt_one = ImageQt.ImageQt(self.pages[self.current_page])
-        page_one = QPixmap.fromImage(image_qt_one.copy())
+        page_one = ImageQt.toqpixmap(self.pages[self.current_page])
         ratio_one = page_one.width() / page_one.height()
         if self.current_page + 1 < len(self.pages):
-            image_qt_two = ImageQt.ImageQt(self.pages[self.current_page + 1]).copy()
-            page_two = QPixmap.fromImage(image_qt_two)
+            page_two = ImageQt.toqpixmap(self.pages[self.current_page + 1])
             ratio_two = page_two.width() / page_two.height()
         else:
             ratio_two = 0
@@ -362,8 +359,7 @@ class KDoublePageViewer(QScrollArea):
             return page_one, None
         else:
             if self.current_page + 1 < len(self.pages):
-                image_qt = ImageQt.ImageQt(self.pages[self.current_page + 1])
-                page_two = QPixmap.fromImage(image_qt.copy())
+                page_two = ImageQt.toqpixmap(self.pages[self.current_page + 1])
                 page_one, page_two = self.resize_page((page_one, page_two))
                 self.showing_two_pages = True
                 return page_one, page_two
