@@ -45,8 +45,13 @@ class Library(object):
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     description TEXT NOT NULL,
+    genera TEXT NOT NULL,
+    authors TEXT NOT NULL,
+    YEAR INTEGER NOT NULL,
     url BLOB NOT NULL,
     cover_url BLOB NOT NULL,
+    publish_status TEXT NOT NULL,
+    scan_status TEXT NOT NULL,
     site TEXT NOT NULL
 )"""
                            )
@@ -96,9 +101,11 @@ class Library(object):
             return
 
         # The manga is not part of the database and needs to be added
-        cmd = "INSERT INTO manga (id, title, description, url, cover_url, site) VALUES" \
-              "({}, '{}', '{]', '{}', '{}', '{}')".format(manga.hash, manga.title, manga.description,
-                                                          manga.url, manga.cover_url, manga.site.get_name())
+        cmd = "INSERT INTO manga (id, title, description, genera, authors, year, url, cover_url, publish_status," \
+              " scan_status, site) VALUES ({}, '{}', '{}', '{}', '{}', {}, '{}', '{}', '{}', '{}', '{}')".format(
+                manga.hash, manga.title, manga.description, manga.get_genera_string(), manga.get_author_string(),
+                manga.year, manga.url, manga.cover_url, manga.publish_status, manga.scan_status, manga.site.get_name()
+                )
         cursor.execute(cmd)
 
         # Adding the chapters to the chapter table
@@ -127,12 +134,15 @@ class Library(object):
         Library.covers[manga.title] = image
 
         # Adding an info file to the manga folder
-        text = 'title={}\nurl={}\ncover_url={}\ndescription={}\nsite={}\n'.format(
-            manga.title, manga.url, manga.cover_url, manga.description, manga.site
-        )
-        info_title = manga.title + '.info'
+        # @TODO: UPDATE THIS TO ALL THE NEW INFORMATION!!!!
+        text = 'title={}\nurl={}\ncover_url={}\nauthor={}\nyear={}\ndescription={}\ngenera={}\n' \
+               'publish_status={}\nscan_status={}\nsite={}\n'.format(
+                manga.title, manga.url, manga.cover_url, manga.get_author_string(), manga.year, manga.description,
+                manga.get_genera_string(), manga.publish_status, manga.scan_status, manga.site.get_name()
+                )
+        info_title = os.path.join(Library.directory, manga.title, manga.title + '.info')
         with open(info_title, 'w') as info:
-            info.write(info_title)
+            info.write(text)
 
     @staticmethod
     def remove_manga(manga):
@@ -150,7 +160,11 @@ class Library(object):
         if data is None:
             return None
 
-        manga = models.Manga(data[0], data[1], data[3], data[2], data[4], Library.site_list[data[5]])
+        genera = data[3].split(',')
+        authors = data[4].split(',')
+
+        manga = models.Manga(data[0], data[1], data[6], data[2], authors, data[5], data[7],
+                             Library.site_list[data[10]], data[8], data[9], genera)
 
         # Selecting all of the chapters of the manga
         cursor.execute('SELECT * FROM chapter WHERE manga_id = {} ORDER BY number'.format(manga.hash))

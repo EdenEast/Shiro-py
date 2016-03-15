@@ -345,10 +345,18 @@ class KDoublePageViewer(QScrollArea):
         self._parent.setWindowTitle(title)
 
     def get_current_pages(self):
-        image_qt = ImageQt.ImageQt(self.pages[self.current_page])
-        page_one = QPixmap.fromImage(image_qt.copy())
-        ratio = page_one.width() / page_one.height()
-        if ratio > 1 or self.current_page + 1 >= len(self.pages):  # The image is landscape or the last page
+        image_qt_one = ImageQt.ImageQt(self.pages[self.current_page])
+        page_one = QPixmap.fromImage(image_qt_one.copy())
+        ratio_one = page_one.width() / page_one.height()
+        if self.current_page + 1 < len(self.pages):
+            image_qt_two = ImageQt.ImageQt(self.pages[self.current_page + 1]).copy()
+            page_two = QPixmap.fromImage(image_qt_two)
+            ratio_two = page_two.width() / page_two.height()
+        else:
+            ratio_two = 0
+
+        # The image is landscape or the last page
+        if ratio_one > 1 or ratio_two > 1 or self.current_page + 1 >= len(self.pages):
             page_one = self.resize_full_page(page_one)
             self.showing_two_pages = False
             return page_one, None
