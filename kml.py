@@ -94,8 +94,25 @@ def testing():
     window.show()
     sys.exit(app.exec())
 
+
+def develop():
+    Library.init_site_list()
+    Library.load()
+
+    ml = mangalife.MangaLife(Library)
+    Library.add_manga(ml.create_manga_info_from_url('http://manga.life/read-online/AkaAkatoretachiNoMonogatari'))
+    Library.add_manga(ml.create_manga_info_from_url('http://manga.life/read-online/GosuTheMaster'))
+    Library.add_manga(ml.create_manga_info_from_url('http://manga.life/read-online/HakoiriDrops'))
+    Library.add_manga(ml.create_manga_info_from_url('http://manga.life/read-online/Horimiya'))
+    Library.add_manga(ml.create_manga_info_from_url('http://manga.life/read-online/PandoraHearts'))
+    Library.add_manga(ml.create_manga_info_from_url('http://manga.life/read-online/ReLIFE'))
+    Library.add_manga(ml.create_manga_info_from_url('http://manga.life/read-online/TaiyouNoIe'))
+    Library.add_manga(ml.create_manga_info_from_url('http://manga.life/read-online/TheBreaker'))
+    Library.add_manga(ml.create_manga_info_from_url('http://manga.life/read-online/TheBreakerNewWaves'))
+
 if __name__ == '__main__':
     # main()
+    # develop()
     testing()
 
 """

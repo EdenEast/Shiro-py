@@ -10,14 +10,38 @@ def hash_string(string):
 
 
 class Manga(object):
-    def __init__(self, hash_data, title, url, description, cover_url, site):
+    def __init__(self, hash_data, title, url, description, authors, year, cover_url, site,
+                 pub_status, scan_status, genera_list=[]):
         self.hash = hash_data
         self.title = title
         self.url = url
         self.description = description
         self.cover_url = cover_url
         self.site = site
+        self.scan_status = scan_status
+        self.publish_status = pub_status
+        self.genera = genera_list
+        self.authors = authors
+        self.year = year
         self.chapter_list = []
+
+    def add_genera(self, genera):
+        self.genera.append(genera)
+
+    def remove_genera(self, genera):
+        self.genera.remove(genera)
+
+    def get_genera_string(self):
+        s = ''
+        for g in self.genera:
+            s += g + ','
+        return s[:-1]
+
+    def get_author_string(self):
+        s = ''
+        for a in self.authors:
+            s += a + ','
+        return s[:-1]
 
     def add_chapter(self, chapter):
         self.chapter_list.append(chapter)

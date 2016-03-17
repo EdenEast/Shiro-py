@@ -38,6 +38,27 @@ class MangaLife(object):
         description = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-12 span div div div')[0].text
         description = description.replace('\'', '').replace('\"', '')
 
+        # Getting all of the genera links
+        genera_collection = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-12 span div > div > a.dark_link')
+        genera_list = []
+        for link in genera_collection:
+            genera_list.append(link.text)
+
+        # Getting Publishing Authors and year Scanlation Status
+        info_links = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-12  span div > div')
+        if 'Alternate Names: ' in str(info_links[0]):
+            publish_status = info_links[3].text.rstrip().lstrip().split(': ')[1]
+            scan_status = info_links[4].text.rstrip().lstrip().split(': ')[1]
+            authors_text = info_links[2].text.rstrip().lstrip()
+        else:
+            publish_status = info_links[2].text.rstrip().lstrip().split(': ')[1]
+            scan_status = info_links[3].text.rstrip().lstrip().split(': ')[1]
+            authors_text = info_links[1].text.rstrip().lstrip()
+
+        year = authors_text.split('(', 1)[-1].rsplit(')', 1)[0]
+        authors_text = authors_text.split('Author: ')[1].split('(', 1)[0]
+        authors = authors_text.split(', ')
+
         # Getting the cover_image
         cover_url = soup.select('body > div.container.container-main > div.well > div.row >'
                                 ' div.col-lg-3.col-md-3.col-sm-3.hidden-xs > img')[0].get('src')
@@ -47,7 +68,8 @@ class MangaLife(object):
         cover_src = '{}/{}.{}'.format(cover_url.rsplit('/', 1)[0], url.rsplit('/', 1)[1], ext)
 
         # Creating the manga object
-        manga = Manga(hash_string(title), title, url, description, cover_url, self)
+        manga = Manga(hash_string(title), title, url, description, authors, int(year), cover_url, self,
+                      publish_status, scan_status, genera_list)
 
         # Finding all of the chapters
         chapter_link_list = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-9 > a')
@@ -190,27 +212,6 @@ class MangaLife(object):
         )
 
         bg_file_io.push(bg_file_io.save_to_archive, (images, file_path, info_text))
-
-    # @staticmethod
-    # def save_image_to_file(args):
-    #     images = args[0]
-    #     file_path = args[1]
-    #     buffer = BytesIO()
-    #     zip_file = zipfile.ZipFile(buffer, 'w')
-    #     for image in images:
-    #         zip_file.writestr(image[0], image[1])
-    #     zip_file.close()
-    #     with open(file_path, 'wb') as archive:
-    #         archive.write(buffer.getvalue())
-    #     buffer.close()
-
-    # @staticmethod
-    # def download_image_link(link, image_list, lock):
-    #     src = link.get('src')
-    #     name = src.rsplit('/', 1)[1]
-    #     image = urllib.request.urlopen(src).read()
-    #     with lock:
-    #         image_list.append((name, image))
 
     def get_all_pages_from_chapter(self, url):
         result = []

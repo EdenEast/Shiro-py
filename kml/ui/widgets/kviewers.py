@@ -78,12 +78,17 @@ class KPageViewer(QScrollArea):
         self.chapter = chapter
         self.current_page = 0
         file_name = os.path.join(Library.directory, chapter.parent.title, chapter.get_file_name())
+        if not os.path.isfile(file_name):
+            self._parent.load_chapter_online(chapter)
+            self._parent.global_shortcuts = []
+            self._parent.define_global_shortcuts()
+            return
         with zipfile.ZipFile(file_name) as archive:
             self.pages.clear()
             for entry in archive.infolist():
                 with archive.open(entry) as file:
                     if '.ini' not in file.name:
-                        self.pages.append(Image.open(file))
+                        self.pages.append(Image.open(file).convert('RGB'))
         self.set_content(self.get_current_page())
 
     def page_down(self):
@@ -176,8 +181,7 @@ class KPageViewer(QScrollArea):
         self.set_content(self.get_current_page())
 
     def get_current_page(self):
-        image_qt = ImageQt.ImageQt(self.pages[self.current_page])
-        pix_map = QPixmap.fromImage(image_qt.copy())
+        pix_map = ImageQt.toqpixmap(self.pages[self.current_page])
         pix_map = self.rotate_page(pix_map)
         pix_map = self.resize_page(pix_map)
         return pix_map
@@ -320,7 +324,7 @@ class KDoublePageViewer(QScrollArea):
             for entry in archive.infolist():
                 with archive.open(entry) as file:
                     if 'ini' not in file.name:
-                        self.pages.append(Image.open(file))
+                        self.pages.append(Image.open(file).convert('RGB'))
         self.reload()
 
     # ---------------------------------------------------------------------------------------------------------------
@@ -345,17 +349,22 @@ class KDoublePageViewer(QScrollArea):
         self._parent.setWindowTitle(title)
 
     def get_current_pages(self):
-        image_qt = ImageQt.ImageQt(self.pages[self.current_page])
-        page_one = QPixmap.fromImage(image_qt.copy())
-        ratio = page_one.width() / page_one.height()
-        if ratio > 1 or self.current_page + 1 >= len(self.pages):  # The image is landscape or the last page
+        page_one = ImageQt.toqpixmap(self.pages[self.current_page])
+        ratio_one = page_one.width() / page_one.height()
+        if self.current_page + 1 < len(self.pages):
+            page_two = ImageQt.toqpixmap(self.pages[self.current_page + 1])
+            ratio_two = page_two.width() / page_two.height()
+        else:
+            ratio_two = 0
+
+        # The image is landscape or the last page
+        if ratio_one > 1 or ratio_two > 1 or self.current_page + 1 >= len(self.pages):
             page_one = self.resize_full_page(page_one)
             self.showing_two_pages = False
             return page_one, None
         else:
             if self.current_page + 1 < len(self.pages):
-                image_qt = ImageQt.ImageQt(self.pages[self.current_page + 1])
-                page_two = QPixmap.fromImage(image_qt.copy())
+                page_two = ImageQt.toqpixmap(self.pages[self.current_page + 1])
                 page_one, page_two = self.resize_page((page_one, page_two))
                 self.showing_two_pages = True
                 return page_one, page_two
