@@ -140,7 +140,10 @@ class Library(object):
                 manga.title, manga.url, manga.cover_url, manga.get_author_string(), manga.year, manga.description,
                 manga.get_genera_string(), manga.publish_status, manga.scan_status, manga.site.get_name()
                 )
-        info_title = os.path.join(Library.directory, manga.title, manga.title + '.info')
+        manga_folder = os.path.join(Library.directory, manga.title)
+        if not os.path.isdir(manga_folder):
+            os.mkdir(manga_folder)
+        info_title = os.path.join(manga_folder, manga.title + '.info')
         with open(info_title, 'w') as info:
             info.write(text)
 

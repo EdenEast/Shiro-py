@@ -78,6 +78,11 @@ class KPageViewer(QScrollArea):
         self.chapter = chapter
         self.current_page = 0
         file_name = os.path.join(Library.directory, chapter.parent.title, chapter.get_file_name())
+        if not os.path.isfile(file_name):
+            self._parent.load_chapter_online(chapter)
+            self._parent.global_shortcuts = []
+            self._parent.define_global_shortcuts()
+            return
         with zipfile.ZipFile(file_name) as archive:
             self.pages.clear()
             for entry in archive.infolist():
