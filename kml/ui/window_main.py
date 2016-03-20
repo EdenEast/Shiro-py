@@ -115,10 +115,28 @@ class MainWindowRedesign(QMainWindow):
 
         self.global_shortcuts = []
 
-        self.manga_list_widget = QListWidget()
+        self.icon_size = QSize(100, 200)
         # self.setCentralWidget(self.manga_list_widget)
 
-        self.icon_size = QSize(100, 200)
+        self.splitter = QSplitter(Qt.Horizontal)
+
+        # Creating the manga info section
+        self.vbox = QVBoxLayout()
+        self.vbox.setAlignment(Qt.AlignCenter)
+        self.cover_label = QLabel()
+
+        title_label = QLabel('Title: ')
+        self.label_title = QLabel()
+        hbox1 = QHBoxLayout()
+        hbox1.addWidget(title_label)
+        hbox1.addWidget(self.label_title)
+
+        self.vbox.addWidget(self.cover_label)
+        self.vbox.addLayout(hbox1)
+
+        # -------------------------------------------------
+
+        self.manga_list_widget = QListWidget()
         self.manga_list_widget.setIconSize(self.icon_size)
         self.manga_list_widget.setViewMode(QListWidget.IconMode)
         self.manga_list_widget.setMovement(QListWidget.Static)
@@ -139,10 +157,24 @@ class MainWindowRedesign(QMainWindow):
 
         self.update_manga_list_widget()
 
-        self.main_widget = QStackedWidget()
-        self.main_widget.addWidget(self.manga_list_widget)
-        self.main_widget.addWidget(self.chapter_split_page)
-        self.setCentralWidget(self.main_widget)
+        vbox_widget = QWidget()
+        vbox_widget.setLayout(self.vbox)
+        self.splitter.addWidget(vbox_widget)
+        self.stacked = QStackedWidget()
+        self.stacked.addWidget(self.manga_list_widget)
+        self.stacked.addWidget(self.chapter_split_page)
+        info_widget = QWidget()
+        info_widget.setLayout(self.vbox)
+        self.splitter.addWidget(info_widget)
+        self.splitter.addWidget(self.stacked)
+        self.splitter.setStretchFactor(0, 10)
+
+
+        # self.main_widget = QStackedWidget()
+        # self.main_widget.addWidget(self.manga_list_widget)
+        # self.main_widget.addWidget(self.chapter_split_page)
+        # self.setCentralWidget(self.main_widget)
+        self.setCentralWidget(self.splitter)
 
         self.setGeometry(100, 100, 800, 800)
         self.define_global_shortcut()
@@ -161,7 +193,7 @@ class MainWindowRedesign(QMainWindow):
     def eventFilter(self, obj, event):
         # http://stackoverflow.com/questions/11379816/qlistview-in-gridmode-auto-stretch-with-fixed-items-on-a-row-column
         if obj is self.manga_list_widget and event.type() == event.Resize:
-            padding = 15
+            padding = 15 * 2
             div = self.manga_list_widget.width() / (self.icon_size.width() + padding)
             width = self.manga_list_widget.width() / div
             div = self.manga_list_widget.height() / self.icon_size.height()

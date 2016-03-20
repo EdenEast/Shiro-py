@@ -1,0 +1,11 @@
+<RCC>
+  <qresource prefix="read_chapter">
+    <file>icons/update.png</file>
+    <file>icons/download.ico</file>
+    <file>icons/add_manga.png</file>
+    <file>icons/read_chapter.png</file>
+    <file>icons/read_two_page.png</file>
+    <file>icons/search_web.png</file>
+    <file>icons/web_view.png</file>
+  </qresource>
+</RCC>

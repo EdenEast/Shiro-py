@@ -81,7 +81,7 @@ class Library(object):
         for file in files:
             title = file.rsplit('/', 1)[0].split('.')[0]
             image = Image.open(os.path.join(cover_folder, file))
-            image.thumbnail((200, 350))
+            # image.thumbnail((200, 350))
             Library.covers[title] = image
         return
 
@@ -158,7 +158,7 @@ class Library(object):
     @staticmethod
     def create_manga_from_db_by_title(title):
         cursor = Library.db.cursor()
-        cursor.execute('SELECT * FROM manga WHERE title = \'{}\''.format(title))
+        cursor.execute("SELECT * FROM manga WHERE title = '{}'".format(title))
         data = cursor.fetchone()
         if data is None:
             return None

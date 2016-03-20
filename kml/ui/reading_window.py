@@ -6,11 +6,12 @@ import os
 
 
 class ReaderWindow(QMainWindow):
-    def __init__(self, chapter):
+    def __init__(self, parent, chapter, view_mode=None):
         super(ReaderWindow, self).__init__()
+        self._parent = parent
         self.chapter = chapter
         self.view_container = None
-        self.load_chapter(chapter)
+        self.load_chapter(chapter, view_mode)
 
         self.global_shortcuts = []
 
@@ -54,16 +55,19 @@ class ReaderWindow(QMainWindow):
         frame_geometry.moveCenter(center_point)
         self.move(frame_geometry.topLeft())
 
-    def load_chapter(self, chapter):
+    def load_chapter(self, chapter, view_mode=None):
         file_path = os.path.join(Library.directory, chapter.parent.title, chapter.get_file_name())
-        if os.path.isfile(file_path):
-            self.load_chapter_offline(chapter)
+        if os.path.isfile(file_path) and view_mode is not 'web':
+            self.load_chapter_offline(chapter, view_mode)
         else:
             self.load_chapter_online(chapter)
 
-    def load_chapter_offline(self, chapter):
-        if type(self.view_container) != kviewers.KPageViewer:
-            self.view_container = kviewers.KPageViewer(self, chapter)
+    def load_chapter_offline(self, chapter, view_mode=None):
+        if type(self.view_container) == kviewers.KWebViewer or self.view_container is None:
+            if view_mode is 'double':
+                self.view_container = kviewers.KDoublePageViewer(self, chapter)
+            else:
+                self.view_container = kviewers.KPageViewer(self, chapter)
             self.setCentralWidget(self.view_container)
         else:
             self.view_container.load_chapter(chapter)
@@ -115,5 +119,8 @@ class ReaderWindow(QMainWindow):
         self.setCentralWidget(self.view_container)
         self.global_shortcuts = []
         self.define_global_shortcuts()
+
+    def closeEvent(self, *args, **kwargs):
+        self._parent.update_chapter_table()
 
 

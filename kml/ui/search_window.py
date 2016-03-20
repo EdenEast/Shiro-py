@@ -60,5 +60,5 @@ class SearchWindow(QWidget):
                 site = Library.site_list[result[2].get_name()]
                 manga = site.create_manga_info_from_url(result[1])
                 Library.add_manga(manga)
-                self.parent.update_manga_lv()
+                self.parent.update_manga_list()
                 self.close()
