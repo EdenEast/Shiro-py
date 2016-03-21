@@ -51,9 +51,6 @@
           <property name="text">
            <string/>
           </property>
-          <property name="pixmap">
-           <pixmap>../../../../../../kml/.Cover/Aka Akatoretachi no Monogatari.jpg</pixmap>
-          </property>
           <property name="scaledContents">
            <bool>false</bool>
           </property>
@@ -443,6 +440,8 @@
     <addaction name="separator"/>
     <addaction name="menuRead_Chapter"/>
     <addaction name="separator"/>
+    <addaction name="action_set_selected_chapter_read"/>
+    <addaction name="separator"/>
     <addaction name="action_download_chapters"/>
    </widget>
    <widget class="QMenu" name="menuWeb">
@@ -554,6 +553,11 @@
    </property>
    <property name="text">
     <string>Download Chapters</string>
+   </property>
+  </action>
+  <action name="action_set_selected_chapter_read">
+   <property name="text">
+    <string>Set Selected Chapter As Read</string>
    </property>
   </action>
  </widget>

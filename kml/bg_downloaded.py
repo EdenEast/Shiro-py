@@ -1,6 +1,7 @@
 from kml.library import Library
 from queue import Queue
 import threading
+from PyQt4 import QtCore
 
 running = True
 running_lock = threading.Lock()
@@ -68,3 +69,50 @@ def download_chapter(args):
         chapter.parent.hash, chapter.title)
     Library.db.cursor().execute(cmd)
     Library.db.commit()
+
+
+class ChapterDownloadWorker(QtCore.QThread):
+    data_downloaded = QtCore.pyqtSignal(object)
+
+    def __init__(self, parent):
+        super(ChapterDownloadWorker, self).__init__()
+        self._parent = parent
+        self.q = Queue()
+        self._abort = False
+
+    def abort(self):
+        self._abort = True
+
+    def push(self, chapter):
+        self.q.put(chapter)
+
+    def run(self):
+        while self.q.not_empty and not self._abort:
+            chapter = self.q.get()
+            self.download_chapter(chapter)
+            self.q.task_done()
+        if self._abort:
+            if self.q.not_empty:
+                with self.q.mutex:
+                    title = self.q.queue[0].parent.title
+                    self.q.queue.clear()
+            self.data_downloaded.emit('Download Aborted for: {}'.format(title))
+        else:
+            self.data_downloaded.emit('')
+
+    def download_chapter(self, chapter):
+        site = chapter.parent.site
+        self.data_downloaded.emit('Downloading: {}'.format(chapter.title))
+        site.download_chapter_threaded(chapter)
+        self.data_downloaded.emit('Update Library for: {}'.format(chapter.title))
+        self.update_chapter_library(chapter)
+        self.data_downloaded.emit('Completed: {}'.format(chapter.title))
+        self._parent.update_chapter_table()
+
+
+    def update_chapter_library(self, chapter):
+        query = "UPDATE chapter SET downloaded=1 WHERE manga_id={} AND title='{}'"\
+            .format(chapter.parent.hash, chapter.title)
+        Library.db.cursor().execute(query)
+        Library.db.commit()
+

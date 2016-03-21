@@ -62,6 +62,8 @@ class Window(QtGui.QMainWindow):
         super(Window, self).__init__()
         uic.loadUi('main_window.ui', self)
 
+        self.download_task = None
+
         self.icon_size = QtCore.QSize(168, 250)
         self.icon_padding = QtCore.QSize(20, 45)
         self.setWindowIcon(QtGui.QIcon('icon.png'))
@@ -74,6 +76,25 @@ class Window(QtGui.QMainWindow):
         self.action_web_viewer.triggered.connect(self.read_chapter_web_viewer)
         self.action_search_web.triggered.connect(self.search_web)
         self.action_download_chapters.triggered.connect(self.download_manga)
+        self.action_set_selected_chapter_read.triggered.connect(self.set_chapter_as_complete)
+
+        # Connecting shortcuts
+        sequence = {
+            'Escape': self.close,
+            'Q': self.close,
+            'R': self.read_chapter,
+            'Ctrl+R': self.read_next_unread_chapter,
+            'U': self.update_manga_list,
+            'CTRL+U': self.update_library,
+            'D': self.download_manga,
+            'Ctrl+D': self.stop_download,
+            'Return': self.enter_pressed,
+            'Space': self.enter_pressed,
+            'Backspace': self.show_manga_list
+        }
+
+        for key, value in sequence.items():
+            self.connect(QtGui.QShortcut(QtGui.QKeySequence(key), self), QtCore.SIGNAL('activated()'), value)
 
         # Setting up the manga list
         self.manga_list.setIconSize(self.icon_size)
@@ -203,6 +224,7 @@ class Window(QtGui.QMainWindow):
         for chapter in manga.chapter_list:
             table.append([chapter.title, chapter.number, chapter.completed, chapter.downloaded])
         self.chapter_model.update(table)
+        self.chapter_table.selectionModel().clear()
 
     def show_manga_list(self):
         self.stacked.setCurrentIndex(0)
@@ -263,7 +285,7 @@ class Window(QtGui.QMainWindow):
         if len(chapters) > 0:
             text = ''
             for chapter in chapters:
-                text += 'title: {}, Number: {}\n'.format(chapter.title, chapter.get_number_string())
+                text += '[Title] - {}\n'.format(chapter.title)
             msg = QtGui.QMessageBox()
             msg.setIcon(QtGui.QMessageBox.Information)
             msg.setDetailedText(text)
@@ -280,8 +302,14 @@ class Window(QtGui.QMainWindow):
     def download_manga(self):
         title = self.manga_list.currentItem().text()
         manga = Library.create_manga_from_db_by_title(title)
-        bg_downloaded.download_manga(manga, self.statusBar())
-        bg_downloaded.start()
+        self.download_task = bg_downloaded.ChapterDownloadWorker(self)
+        self.download_task.data_downloaded.connect(self.status_message)
+        for chapter in manga.chapter_list:
+            self.download_task.push(chapter)
+        self.download_task.start()
+
+    def stop_download(self):
+        self.download_task.abort()
 
     def read_chapter_single_page_viewer(self):
         self.read_chapter('single')
@@ -293,9 +321,37 @@ class Window(QtGui.QMainWindow):
         self.read_chapter('web')
         pass
 
+    def read_next_unread_chapter(self):
+        title = self.manga_list.currentItem().text()
+        manga = Library.create_manga_from_db_by_title(title)
+
+        chapter = manga.get_next_chapter_to_read()
+        self.reader_view_window = reading_window.ReaderWindow(self, chapter, 'single')
+        self.reader_view_window.show()
+
     def search_web(self):
         self.search_window = search_window.SearchWindow(Library, self)
         self.search_window.show()
+
+    def set_chapter_as_complete(self):
+        manga_title = self.manga_list.currentItem().text()
+        manga = Library.create_manga_from_db_by_title(manga_title)
+        rows = self.chapter_table.selectionModel().selectedRows()
+        for index in rows:
+            title = self.chapter_model.table[index.row()][0]
+            Library.db.cursor().execute("UPDATE chapter SET completed=1 WHERE manga_id={} and title='{}'"
+                                        .format(manga.hash, title))
+        Library.db.commit()
+        self.update_chapter_table()
+
+    def enter_pressed(self):
+        if self.stacked.currentIndex() == 0:
+            self.ml_selected_item()
+        else:
+            self.read_chapter()
+
+    def status_message(self, msg):
+        self.statusBar().showMessage(msg)
 
     def closeEvent(self, *args, **kwargs):
         print(self.width(), self.height())
