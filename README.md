@@ -1,8 +1,8 @@
-# Kindread Manga Library [ KML ]
-Kindread Manga Library. View, Manage, download and stay up to date on your manga library.
+# Kindred Manga Library [ KML ]
+Kindred Manga Library. View, Manage, download and stay up to date on your manga library.
 
 I have looked for a manga library application to keep up with all of the manga that I am currently reading and could not find anything
-that staified me. This is how Kindread Manga Library (kml) was born.
+that staified me. This is how Kindred Manga Library (kml) was born.
 
 Currently in development and is not ready for an offical release.
 

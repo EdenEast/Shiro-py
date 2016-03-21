@@ -67,6 +67,7 @@ class Window(QtGui.QMainWindow):
         self.icon_size = QtCore.QSize(168, 250)
         self.icon_padding = QtCore.QSize(20, 45)
         self.setWindowIcon(QtGui.QIcon('icon.png'))
+        self.setWindowTitle('Kindred Manga Library')
 
         # Connecting actions
         self.action_update_library.triggered.connect(self.update_library)
