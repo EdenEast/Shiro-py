@@ -62,18 +62,19 @@ class ChapterModel(QtCore.QAbstractTableModel):
 class Window(QtGui.QMainWindow):
     def __init__(self):
         super(Window, self).__init__()
-        # location = 'main_window.ui'
-        location = 'kml/ui/main_window.ui'
+        location = 'main_window.ui'
+        # location = 'kml/ui/main_window.ui'
         uic.loadUi(location, self)
 
         self.download_task = None
 
         self.icon_size = QtCore.QSize(168, 250)
         self.icon_padding = QtCore.QSize(20, 45)
-        self.setWindowIcon(QtGui.QIcon('icon.png'))
+        self.setWindowIcon(QtGui.QIcon('icon.ico'))
         self.setWindowTitle('Kindred Manga Library')
 
         # Connecting actions
+        self.action_exit.triggered.connect(self.close)
         self.action_update_library.triggered.connect(self.update_library)
         self.action_update_manga.triggered.connect(self.update_manga)
         self.action_single_page_viewer.triggered.connect(self.read_chapter_single_page_viewer)
@@ -196,6 +197,21 @@ class Window(QtGui.QMainWindow):
                     genre += ', {}'.format(g)
                 character_count += word_count
 
+        author_string = data[1].split(',')
+        author = ''
+        character_count = 0
+        for a in author_string:
+            word_count = len(a)
+            if character_count + word_count >= 24:
+                author += '\n{}'.format(a)
+                character_count = word_count
+            else:
+                if len(author) == 0:
+                    author = a
+                else:
+                    author += ', {}'.format(a)
+                character_count += word_count
+
         title = ''
         character_count = 0
         for word in data[0].split(' '):
@@ -213,7 +229,7 @@ class Window(QtGui.QMainWindow):
         # Setting all of the label to display the information
         self.label_title.setText(title)
         # self.label_title.setText(data[0])
-        self.label_author.setText(data[1])
+        self.label_author.setText(author)
         self.label_year.setText(str(data[2]))
         self.label_genre.setText(genre)
         self.label_publish.setText(data[4])
@@ -344,7 +360,6 @@ class Window(QtGui.QMainWindow):
 
 
     def closeEvent(self, *args, **kwargs):
-        print(self.width(), self.height())
         Library.close()
         bg_file_io.join()
 

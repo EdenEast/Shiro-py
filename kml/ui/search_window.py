@@ -28,7 +28,7 @@ class SearchWindow(QWidget):
         vbox.addWidget(self.add_button)
         self.setLayout(vbox)
 
-        self.setWindowIcon(QIcon('icon.png'))
+        self.setWindowIcon(QIcon('icon.ico'))
         for key in Library.site_list.keys():
             self.combo_box.addItem(Library.site_list[key].get_name())
 

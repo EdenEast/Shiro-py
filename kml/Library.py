@@ -8,6 +8,7 @@ import sqlite3
 
 from kml.web.site import mangalife
 from kml import models
+from kml.ui import settings_popup
 
 
 class Library(object):
@@ -28,7 +29,7 @@ class Library(object):
         if not os.path.isfile('settings.ini'):
             # @TODO: Create a dialgue box that asks for the library folder and save it in the settings.ini file
             print('[ERROR] There is no settings.ini file')
-            return
+            return False
 
         config = configparser.ConfigParser()
         config.read('settings.ini')
@@ -83,7 +84,7 @@ class Library(object):
             image = Image.open(os.path.join(cover_folder, file))
             # image.thumbnail((200, 350))
             Library.covers[title] = image
-        return
+        return True
 
     @staticmethod
     def close():

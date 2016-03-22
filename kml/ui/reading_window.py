@@ -15,7 +15,7 @@ class ReaderWindow(QMainWindow):
 
         self.global_shortcuts = []
 
-        self.setWindowIcon(QIcon('icon.png'))
+        self.setWindowIcon(QIcon('icon.ico'))
         self.setCentralWidget(self.view_container)
         self.setGeometry(0, 0, 1200, 800)
         self.center_window()

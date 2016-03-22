@@ -413,7 +413,7 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <addaction name="actionExit"/>
+    <addaction name="action_exit"/>
    </widget>
    <widget class="QMenu" name="menuLibrary">
     <property name="title">
@@ -482,7 +482,7 @@
    <addaction name="separator"/>
    <addaction name="action_search_web"/>
   </widget>
-  <action name="actionExit">
+  <action name="action_exit">
    <property name="text">
     <string>Exit</string>
    </property>
