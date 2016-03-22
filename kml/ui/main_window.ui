@@ -490,7 +490,7 @@
   <action name="action_update_library">
    <property name="icon">
     <iconset resource="main_window.qrc">
-     <normaloff>:/read_chapter/icons/update.png</normaloff>:/read_chapter/icons/update.png</iconset>
+     <normaloff>:/read_chapter/icons/update_library.png</normaloff>:/read_chapter/icons/update_library.png</iconset>
    </property>
    <property name="text">
     <string>Update Library</string>

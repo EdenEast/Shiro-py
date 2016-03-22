@@ -3,10 +3,11 @@ import sys
 
 from PIL import Image, ImageQt
 from PyQt4 import QtGui, QtCore, uic
+from kml.ui import main_window_rc
 
 from kml import bg_file_io, bg_downloaded
 from kml.library import Library
-from kml.ui import reading_window, search_window
+from kml.ui import reading_window, search_window, update_window
 
 
 class ChapterModel(QtCore.QAbstractTableModel):
@@ -61,11 +62,9 @@ class ChapterModel(QtCore.QAbstractTableModel):
 class Window(QtGui.QMainWindow):
     def __init__(self):
         super(Window, self).__init__()
-        if __name__ == '__main__':
-            location = 'main_window.ui'
-        else:
-            location = 'kml/ui/main_window.ui'
-            uic.loadUi(location, self)
+        # location = 'main_window.ui'
+        location = 'kml/ui/main_window.ui'
+        uic.loadUi(location, self)
 
         self.download_task = None
 
@@ -88,9 +87,9 @@ class Window(QtGui.QMainWindow):
         sequence = {
             'Escape': self.close,
             'Q': self.close,
-            'R': self.read_chapter,
+            'R': self.r_pressed,
             'Ctrl+R': self.read_next_unread_chapter,
-            'U': self.update_manga_list,
+            'U': self.update_manga,
             'CTRL+U': self.update_library,
             'D': self.download_manga,
             'Ctrl+D': self.stop_download,
@@ -263,47 +262,25 @@ class Window(QtGui.QMainWindow):
         query = 'SELECT title FROM manga'
         query_result = cursor.execute(query).fetchall()
 
-        text = ''
+        self.update_window = update_window.UpdateWindow(self)
+        self.update_window.show()
+        self.update_worker = bg_downloaded.MangaUpdateWorker(self.update_window)
+        self.update_window.set_worker(self.update_worker)
+        self.update_worker.data_updated.connect(self.update_window.append_text)
         for title in query_result:
-            title = title[0]
-            chapters = Library.update_manga_by_title(title)
-            text += title + ':\n'
-            if len(chapters) > 0:
-                for chapter in chapters:
-                    text += '     - Title: {} Number: {}\n'.format(chapter.title, chapter.get_number_string())
-            else:
-                text += '    Up To Date\n'
-            text += '\n'
-
-        msg = QtGui.QMessageBox()
-        msg.setIcon(QtGui.QMessageBox.Information)
-        msg.setText('Updated manga information bellow')
-        msg.setDetailedText(text)
-        msg.setFixedSize(300, 500)
-        msg.setWindowTitle('Updated Library Information')
-        msg.exec()
+            self.update_worker.push(title[0])
+        self.update_worker.start()
 
     def update_manga(self):
         title = self.manga_list.currentItem().text()
-        self.statusBar().showMessage('Updating {}... '.format(title), 2000)
-        chapters = Library.update_manga_by_title(title)
-        self.statusBar().showMessage('Updated {} -> [ {} ] new chapter(s).'.format(title, len(chapters)), 5000)
-        if len(chapters) > 0:
-            text = ''
-            for chapter in chapters:
-                text += '[Title] - {}\n'.format(chapter.title)
-            msg = QtGui.QMessageBox()
-            msg.setIcon(QtGui.QMessageBox.Information)
-            msg.setDetailedText(text)
-            msg.setWindowTitle('{} Updated'.format(title))
-            msg.setText('Chapters that were added in update.')
-            msg.exec_()
-        else:
-            msg = QtGui.QMessageBox()
-            msg.setIcon(QtGui.QMessageBox.Information)
-            msg.setWindowTitle('{} Updated'.format(title))
-            msg.setText('{} is up to date'.format(title))
-            msg.exec()
+
+        self.update_window = update_window.UpdateWindow(self)
+        self.update_window.show()
+        self.update_worker = bg_downloaded.MangaUpdateWorker(self.update_window)
+        self.update_window.set_worker(self.update_worker)
+        self.update_worker.data_updated.connect(self.update_window.append_text)
+        self.update_worker.push(title)
+        self.update_worker.start()
 
     def download_manga(self):
         title = self.manga_list.currentItem().text()
@@ -356,8 +333,15 @@ class Window(QtGui.QMainWindow):
         else:
             self.read_chapter()
 
+    def r_pressed(self):
+        if self.stacked.currentIndex() == 0:
+            self.read_next_unread_chapter()
+        else:
+            self.read_chapter()
+
     def status_message(self, msg):
         self.statusBar().showMessage(msg)
+
 
     def closeEvent(self, *args, **kwargs):
         print(self.width(), self.height())
