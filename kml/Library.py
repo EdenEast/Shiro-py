@@ -8,7 +8,6 @@ import sqlite3
 
 from kml.web.site import mangalife
 from kml import models
-from kml.ui import settings_popup
 
 
 class Library(object):
@@ -25,14 +24,20 @@ class Library(object):
         Library.site_list[mangalife.MangaLife.get_name()] = mangalife.MangaLife(Library)
 
     @staticmethod
+    def get_settings_file_name():
+        home_directory = os.path.expanduser('~')
+        return os.path.join(home_directory, 'kml.ini')
+
+    @staticmethod
     def load():
-        if not os.path.isfile('settings.ini'):
+        settings_file = Library.get_settings_file_name()
+        if not os.path.isfile(Library.get_settings_file_name()):
             # @TODO: Create a dialgue box that asks for the library folder and save it in the settings.ini file
-            print('[ERROR] There is no settings.ini file')
+            print('[ERROR] There is no {} file'.format(settings_file))
             return False
 
         config = configparser.ConfigParser()
-        config.read('settings.ini')
+        config.read(settings_file)
         Library.directory = os.path.normpath(config['Library']['library_directory'])
 
         # Checking to see if there is a library.db file in the library directory

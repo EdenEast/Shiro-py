@@ -75,6 +75,7 @@ class Window(QtGui.QMainWindow):
 
         # Connecting actions
         self.action_exit.triggered.connect(self.close)
+        self.action_remove_manga.triggered.connect(self.remove_manga)
         self.action_update_library.triggered.connect(self.update_library)
         self.action_update_manga.triggered.connect(self.update_manga)
         self.action_single_page_viewer.triggered.connect(self.read_chapter_single_page_viewer)
@@ -167,7 +168,6 @@ class Window(QtGui.QMainWindow):
 
         # Getting the selected item
         item = self.manga_list.currentItem()
-
         title = item.text()
         cover = Library.covers[title]
         # cover.thumbnail((235, 350), Image.ANTIALIAS)
@@ -180,6 +180,10 @@ class Window(QtGui.QMainWindow):
                 "scan_status, description FROM manga WHERE title='{}'".format(title)
         cursor.execute(query)
         data = cursor.fetchone()
+
+        if data is None:
+            self.show_clean_info_panel()
+            return
 
         # Breaking up the genre string so that it is not so big
         genre_string = data[3].split(',')
@@ -235,6 +239,16 @@ class Window(QtGui.QMainWindow):
         self.label_publish.setText(data[4])
         self.label_scan.setText(data[5])
         self.description_box.setText(data[6])
+
+    def show_clean_info_panel(self):
+        self.cover_label.setPixmap(QtGui.QPixmap())
+        self.label_title.setText('')
+        self.label_author.setText('')
+        self.label_year.setText('')
+        self.label_genre.setText('')
+        self.label_publish.setText('')
+        self.label_scan.setText('')
+        self.description_box.setText('')
 
     def update_chapter_table(self):
         item = self.manga_list.currentItem()
@@ -309,6 +323,13 @@ class Window(QtGui.QMainWindow):
 
     def stop_download(self):
         self.download_task.abort()
+
+    def remove_manga(self):
+        title = self.manga_list.currentItem().text()
+        manga = Library.create_manga_from_db_by_title(title)
+        Library.remove_manga(manga)
+        self.statusBar().showMessage('Removed: {}'.format(title), 5000)
+        self.update_manga_list()
 
     def read_chapter_single_page_viewer(self):
         self.read_chapter('single')

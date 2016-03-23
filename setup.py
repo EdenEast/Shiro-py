@@ -36,7 +36,7 @@ packages = []
 # Include Files
 include_files = ['icon.ico', 'kml/ui/main_window.ui']
 
-# ----------------------------------------------------------
+# -----------------------------------------------------------
 # Options Setup
 
 options = {

@@ -427,13 +427,7 @@
      <addaction name="action_two_page_viewer"/>
      <addaction name="action_web_viewer"/>
     </widget>
-    <widget class="QMenu" name="menuAdd_Manga">
-     <property name="title">
-      <string>Add Manga</string>
-     </property>
-     <addaction name="action_add_from_url"/>
-    </widget>
-    <addaction name="menuAdd_Manga"/>
+    <addaction name="action_remove_manga"/>
     <addaction name="separator"/>
     <addaction name="action_update_manga"/>
     <addaction name="action_update_library"/>
@@ -558,6 +552,11 @@
   <action name="action_set_selected_chapter_read">
    <property name="text">
     <string>Set Selected Chapter As Read</string>
+   </property>
+  </action>
+  <action name="action_remove_manga">
+   <property name="text">
+    <string>Remove Manga</string>
    </property>
   </action>
  </widget>

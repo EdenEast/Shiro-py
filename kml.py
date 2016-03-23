@@ -25,8 +25,8 @@ class ThreadedWindow(threading.Thread):
 
 def main():
     app = QtGui.QApplication(sys.argv)
-    
-    if not os.path.isfile('settings.ini'):
+    settings_file = Library.get_settings_file_name()
+    if not os.path.isfile(settings_file):
         # settings_window = settings_popup.SettingsPopup()
         # t = ThreadedWindow(settings_window)
         # t.start()
@@ -34,7 +34,7 @@ def main():
         folder = str(QtGui.QFileDialog.getExistingDirectory(None, "Select Library Directory"))
         if not folder:
             exit()
-        with open('settings.ini', 'w') as file:
+        with open(settings_file, 'w') as file:
             file.write('[Library]\nlibrary_directory={}'.format(folder))
 
     Library.init_site_list()
