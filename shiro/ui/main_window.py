@@ -280,6 +280,9 @@ class Window(QtGui.QMainWindow):
     # Actions
 
     def read_chapter(self, view_mode=None):
+        if not self.chapter_model.table:
+            self.read_next_unread_chapter(view_mode)
+            return
         title = self.manga_list.currentItem().text()
         manga = Library.create_manga_from_db_by_title(title)
 
@@ -344,12 +347,12 @@ class Window(QtGui.QMainWindow):
         self.read_chapter('web')
         pass
 
-    def read_next_unread_chapter(self):
+    def read_next_unread_chapter(self, viewmode='single'):
         title = self.manga_list.currentItem().text()
         manga = Library.create_manga_from_db_by_title(title)
 
         chapter = manga.get_next_chapter_to_read()
-        self.reader_view_window = reading_window.ReaderWindow(self, chapter, 'single')
+        self.reader_view_window = reading_window.ReaderWindow(self, chapter, viewmode)
         self.reader_view_window.show()
 
     def search_web(self):

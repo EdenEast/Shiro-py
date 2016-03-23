@@ -3,6 +3,7 @@ from PIL import Image
 import configparser
 import os
 import sqlite3
+import shutil
 
 from shiro.web.site import mangalife
 from shiro import models
@@ -157,6 +158,9 @@ class Library(object):
         for chapter in manga.chapter_list:
             cursor.execute('DELETE FROM chapter WHERE manga_id={} AND title=\'{}\''.format(manga.hash, chapter.title))
         Library.db.commit()
+        folder = os.path.join(Library.directory, manga.title)
+        if os.path.isdir(folder):
+            shutil.rmtree(folder)
 
     @staticmethod
     def create_manga_from_db_by_title(title):
