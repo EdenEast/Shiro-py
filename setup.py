@@ -9,7 +9,7 @@ if sys.platform == 'win32':
 
 # ----------------------------------------------------------
 # Application name
-name = 'Kml'
+name = 'Shiro'
 
 # ----------------------------------------------------------
 # Version
@@ -25,7 +25,7 @@ description = 'View, Manage, download and stay up to date on your manga library.
 
 # ----------------------------------------------------------
 # Description
-executables = [Executable('kml.py', base=base, icon=icon)]
+executables = [Executable('shiro.py', base=base, icon=icon)]
 
 # ----------------------------------------------------------
 # Packages
@@ -34,7 +34,7 @@ packages = []
 
 # ----------------------------------------------------------
 # Include Files
-include_files = ['icon.ico', 'kml/ui/main_window.ui']
+include_files = ['icon.ico', 'shiro/ui/main_window.ui']
 
 # -----------------------------------------------------------
 # Options Setup

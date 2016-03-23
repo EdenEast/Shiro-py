@@ -1,4 +1,4 @@
-from kml.library import Library
+from shiro.library import Library
 from queue import Queue
 import threading
 from PyQt4 import QtCore

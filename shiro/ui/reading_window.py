@@ -1,7 +1,7 @@
 from PyQt4.QtGui import QMainWindow, QShortcut, QKeySequence, QApplication, QIcon
 from PyQt4.QtCore import Qt
-from kml.library import Library
-from kml.ui.widgets import kviewers
+from shiro.library import Library
+from shiro.ui.widgets import kviewers
 import os
 
 
@@ -93,7 +93,7 @@ class ReaderWindow(QMainWindow):
         self.view_container.reload()
 
     def switch_viewing_modes(self):
-        if type(self.view_container) == kviewers.KPageViewer:
+        if type(self.view_container) == kviewers.KPageViewer or type(self.view_container) == kviewers.KDoublePageViewer:
             self.load_chapter_online(self.chapter)
         else:
             file_name = os.path.join(Library.directory, self.chapter.parent.title, self.chapter.get_file_name())

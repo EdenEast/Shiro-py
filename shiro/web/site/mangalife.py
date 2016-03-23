@@ -1,7 +1,7 @@
 
-from kml.web import web_utility
-from kml import bg_file_io
-from kml.models import Manga, Chapter, hash_string
+from shiro.web import web_utility
+from shiro import bg_file_io
+from shiro.models import Manga, Chapter, hash_string
 from io import BytesIO
 import threading
 import os

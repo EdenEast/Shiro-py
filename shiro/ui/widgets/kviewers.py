@@ -2,7 +2,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtWebKit import *
 from PyQt4 import QtCore
 from PyQt4.QtGui import QColor
-from kml.library import Library
+from shiro.library import Library
 from PIL import Image, ImageQt
 import os
 import zipfile
@@ -197,8 +197,8 @@ class KPageViewer(QScrollArea):
         self.set_content(self.get_current_page())
 
     def update_title(self):
-        title = '{}: {} ( {} | {} )'.format(self.chapter.parent.title, self.chapter.title,
-                                            self.current_page + 1, len(self.pages))
+        title = '{}: {} ( {} | {} ) - Shiro'.format(self.chapter.parent.title, self.chapter.title,
+                                                    self.current_page + 1, len(self.pages))
         self._parent.setWindowTitle(title)
 
     def resize_page(self, pix_map):
@@ -336,11 +336,11 @@ class KDoublePageViewer(QScrollArea):
     def update_window_title(self):
         if self.showing_two_pages:
             if self.right_to_left:
-                title = '{}: {} ( {} & {} | {} ) [R - L]'.format(
+                title = '{}: {} ( {} & {} | {} ) [R - L] - Shiro'.format(
                     self.chapter.parent.title, self.chapter.title, self.current_page + 2, self.current_page + 1,
                     len(self.pages))
             else:
-                title = '{}: {} ( {} & {} | {} ) [L - R]'.format(
+                title = '{}: {} ( {} & {} | {} ) [L - R] - Shiro'.format(
                     self.chapter.parent.title, self.chapter.title, self.current_page + 1, self.current_page + 2,
                     len(self.pages))
         else:
@@ -577,7 +577,7 @@ class KWebViewer(QWebView):
         self.update_window_title()
 
     def update_window_title(self):
-        text = '{}: {}'.format(self.chapter.parent.title, self.chapter.title)
+        text = '{}: {} - Shiro'.format(self.chapter.parent.title, self.chapter.title)
         self._parent.setWindowTitle(text)
 
     def calculate_page_step(self):

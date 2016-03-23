@@ -1,5 +1,5 @@
 from PyQt4.QtGui import *
-from kml.library import Library
+from shiro.library import Library
 
 
 class SearchWindow(QWidget):
@@ -33,6 +33,7 @@ class SearchWindow(QWidget):
             self.combo_box.addItem(Library.site_list[key].get_name())
 
         self.setGeometry(0, 0, 600, 350)
+        self.setWindowTitle('Shiro - Search The Web')
         self._centralize_window()
 
     def _centralize_window(self):

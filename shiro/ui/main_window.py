@@ -3,11 +3,11 @@ import sys
 
 from PIL import Image, ImageQt
 from PyQt4 import QtGui, QtCore, uic
-from kml.ui import main_window_rc
+from shiro.ui import main_window_rc
 
-from kml import bg_file_io, bg_downloaded
-from kml.library import Library
-from kml.ui import reading_window, search_window, update_window
+from shiro import bg_file_io, bg_downloaded
+from shiro.library import Library
+from shiro.ui import reading_window, search_window, update_window
 
 
 class ChapterModel(QtCore.QAbstractTableModel):
@@ -62,8 +62,9 @@ class ChapterModel(QtCore.QAbstractTableModel):
 class Window(QtGui.QMainWindow):
     def __init__(self):
         super(Window, self).__init__()
-        location = 'main_window.ui'
-        # location = 'kml/ui/main_window.ui'
+        # @NOTE: toggle these two lines depending on how you are running. The first one is for develop 2nd for building
+        location = 'shiro/ui/main_window.ui'
+        # location = 'main_window.ui'
         uic.loadUi(location, self)
 
         self.download_task = None
@@ -71,7 +72,7 @@ class Window(QtGui.QMainWindow):
         self.icon_size = QtCore.QSize(168, 250)
         self.icon_padding = QtCore.QSize(20, 45)
         self.setWindowIcon(QtGui.QIcon('icon.ico'))
-        self.setWindowTitle('Kindred Manga Library')
+        self.setWindowTitle('Shiro')
 
         # Connecting actions
         self.action_exit.triggered.connect(self.close)

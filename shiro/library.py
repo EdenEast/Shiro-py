@@ -1,11 +1,11 @@
-from kml.web import web_utility
+from shiro.web import web_utility
 from PIL import Image
 import configparser
 import os
 import sqlite3
 
-from kml.web.site import mangalife
-from kml import models
+from shiro.web.site import mangalife
+from shiro import models
 
 
 class Library(object):
@@ -24,7 +24,7 @@ class Library(object):
     @staticmethod
     def get_settings_file_name():
         home_directory = os.path.expanduser('~')
-        return os.path.join(home_directory, 'kml.ini')
+        return os.path.join(home_directory, 'shiro.ini')
 
     @staticmethod
     def load():
