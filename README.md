@@ -16,8 +16,10 @@ up a terminal/console in root folder and run the command
 `python setup.py build`
 
 If you want to build an installer run this command the same way that you ran the build command
+
 Windows
 `python setup.py bdist_msi`
+
 OSX
 `python setup.py bdist_dmg`
 
