@@ -17,10 +17,10 @@ up a terminal/console in root folder and run the command
 
 If you want to build an installer run this command the same way that you ran the build command
 
-Windows
+#### Windows
 `python setup.py bdist_msi`
 
-OSX
+#### OSX
 `python setup.py bdist_dmg`
 
 ## Third Party Dependencies
