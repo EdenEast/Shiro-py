@@ -1,5 +1,3 @@
-
-
 from kml.web import web_utility
 from PIL import Image
 import configparser

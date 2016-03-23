@@ -1,5 +1,5 @@
-from kml.library import Library
-from kml.ui import main_window, settings_popup
+from kml.lib import Library
+from kml.ui import main_window
 from kml import bg_file_io
 from PyQt4 import QtGui, QtCore
 import sys

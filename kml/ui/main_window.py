@@ -6,7 +6,7 @@ from PyQt4 import QtGui, QtCore, uic
 from kml.ui import main_window_rc
 
 from kml import bg_file_io, bg_downloaded
-from kml.library import Library
+from kml.lib import Library
 from kml.ui import reading_window, search_window, update_window
 
 

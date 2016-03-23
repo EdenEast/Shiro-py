@@ -1,5 +1,5 @@
 from PyQt4.QtGui import *
-from kml.library import Library
+from kml.lib import Library
 
 
 class SearchWindow(QWidget):

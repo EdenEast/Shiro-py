@@ -1,6 +1,6 @@
 from PyQt4.QtGui import QMainWindow, QShortcut, QKeySequence, QApplication, QIcon
 from PyQt4.QtCore import Qt
-from kml.library import Library
+from kml.lib import Library
 from kml.ui.widgets import kviewers
 import os
 
