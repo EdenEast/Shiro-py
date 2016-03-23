@@ -104,8 +104,23 @@ class MangaLife(object):
             return None
 
         updated_chapter_list = []
+        status_changed = False
 
         soup, html = web_utility.get_soup_from_url(manga.url)
+
+        # Getting Publishing Authors and year Scanlation Status
+        info_links = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-12  span div > div')
+        if 'Alternate Names: ' in str(info_links[0]):
+            publish_status = info_links[3].text.rstrip().lstrip().split(': ')[1]
+            scan_status = info_links[4].text.rstrip().lstrip().split(': ')[1]
+        else:
+            publish_status = info_links[2].text.rstrip().lstrip().split(': ')[1]
+            scan_status = info_links[3].text.rstrip().lstrip().split(': ')[1]
+
+        if manga.publish_status != publish_status or manga.scan_status != scan_status:
+            status_changed = True
+            manga.publish_status = publish_status
+            manga.scan_status = scan_status
 
         chapter_collection = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-9 > a')
         chapter_collection.reverse()
@@ -139,7 +154,7 @@ class MangaLife(object):
             updated_chapter_list.append(chapter)
             manga.add_chapter(chapter)
             index += 1
-        return updated_chapter_list
+        return updated_chapter_list, status_changed
 
     def download_chapter(self, chapter):
         file_path = os.path.join(self.library.directory, chapter.parent.title, chapter.get_file_name())

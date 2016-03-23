@@ -418,6 +418,10 @@ class KDoublePageViewer(QScrollArea):
                 pix_map = pix_map.scaledToHeight(self.size().height() * 0.95, QtCore.Qt.SmoothTransformation)
         return pix_map
 
+    def switch_directions(self):
+        self.right_to_left = not self.right_to_left
+        self.reload()
+
     # ---------------------------------------------------------------------------------------------------------------
     # Page functions
     def page_down(self):

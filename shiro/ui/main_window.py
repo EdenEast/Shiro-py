@@ -163,6 +163,7 @@ class Window(QtGui.QMainWindow):
             item.setStatusTip(title)
             item.setIcon(icon)
             item.setSizeHint(self.icon_size + self.icon_padding)
+            item.setBackgroundColor(QtGui.QColor('#F9F9F9'))
 
     def update_info_panel(self):
         cursor = Library.db.cursor()
@@ -177,7 +178,7 @@ class Window(QtGui.QMainWindow):
         self.cover_label.setPixmap(pix_map)
         self.cover_label.resize(pix_map.size())
 
-        query = "SELECT title, authors, year, genera, publish_status, " \
+        query = "SELECT title, authors, year, genre, publish_status, " \
                 "scan_status, description FROM manga WHERE title='{}'".format(title)
         cursor.execute(query)
         data = cursor.fetchone()
@@ -240,6 +241,7 @@ class Window(QtGui.QMainWindow):
         self.label_publish.setText(data[4])
         self.label_scan.setText(data[5])
         self.description_box.setText(data[6])
+        self.status_message(title)
 
     def show_clean_info_panel(self):
         self.cover_label.setPixmap(QtGui.QPixmap())
@@ -379,7 +381,6 @@ class Window(QtGui.QMainWindow):
 
     def status_message(self, msg):
         self.statusBar().showMessage(msg)
-
 
     def closeEvent(self, *args, **kwargs):
         Library.close()

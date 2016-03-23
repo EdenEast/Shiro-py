@@ -11,7 +11,7 @@ def hash_string(string):
 
 class Manga(object):
     def __init__(self, hash_data, title, url, description, authors, year, cover_url, site,
-                 pub_status, scan_status, genera_list=[]):
+                 pub_status, scan_status, genre_list=[]):
         self.hash = hash_data
         self.title = title
         self.url = url
@@ -20,20 +20,20 @@ class Manga(object):
         self.site = site
         self.scan_status = scan_status
         self.publish_status = pub_status
-        self.genera = genera_list
+        self.genre = genre_list
         self.authors = authors
         self.year = year
         self.chapter_list = []
 
     def add_genera(self, genera):
-        self.genera.append(genera)
+        self.genre.append(genera)
 
     def remove_genera(self, genera):
-        self.genera.remove(genera)
+        self.genre.remove(genera)
 
-    def get_genera_string(self):
+    def get_genre_string(self):
         s = ''
-        for g in self.genera:
+        for g in self.genre:
             s += g + ','
         return s[:-1]
 

@@ -1,26 +1,9 @@
 from shiro.library import Library
 from shiro.ui import main_window
 from shiro import bg_file_io
-from PyQt4 import QtGui, QtCore
+from PyQt4 import QtGui
 import sys
 import os
-import threading
-import time
-
-
-class ThreadedWindow(threading.Thread):
-    def __init__(self, window):
-        super(ThreadedWindow, self).__init__()
-        self.window = window
-        self._abort = False
-
-    def run(self):
-        self.window.show()
-        while not self._abort or not self.window.completed:
-            time.sleep(0.2)
-
-    def finish(self):
-        self._abort = True
 
 
 def main():

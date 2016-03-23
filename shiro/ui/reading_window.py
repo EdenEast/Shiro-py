@@ -34,6 +34,7 @@ class ReaderWindow(QMainWindow):
             'Ctrl+Shift+R': self.view_container.rotate_left,
             'Ctrl+B': self.view_container.first_page,
             'Ctrl+E': self.view_container.last_page,
+            'S': self.switch_double_page_direction,
             'D': self.switch_double_page,
             'M': self.switch_viewing_modes,
             '1': self.view_container.original_fit,
@@ -119,6 +120,10 @@ class ReaderWindow(QMainWindow):
         self.setCentralWidget(self.view_container)
         self.global_shortcuts = []
         self.define_global_shortcuts()
+
+    def switch_double_page_direction(self):
+        if type(self.view_container) == kviewers.KDoublePageViewer:
+            self.view_container.switch_directions()
 
     def closeEvent(self, *args, **kwargs):
         self._parent.update_chapter_table()

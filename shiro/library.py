@@ -49,9 +49,9 @@ class Library(object):
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     title TEXT NOT NULL,
     description TEXT NOT NULL,
-    genera TEXT NOT NULL,
+    genre TEXT NOT NULL,
     authors TEXT NOT NULL,
-    YEAR INTEGER NOT NULL,
+    year INTEGER NOT NULL,
     url BLOB NOT NULL,
     cover_url BLOB NOT NULL,
     publish_status TEXT NOT NULL,
@@ -105,9 +105,9 @@ class Library(object):
             return
 
         # The manga is not part of the database and needs to be added
-        cmd = "INSERT INTO manga (id, title, description, genera, authors, year, url, cover_url, publish_status," \
+        cmd = "INSERT INTO manga (id, title, description, genre, authors, year, url, cover_url, publish_status," \
               " scan_status, site) VALUES ({}, '{}', '{}', '{}', '{}', {}, '{}', '{}', '{}', '{}', '{}')".format(
-                manga.hash, manga.title, manga.description, manga.get_genera_string(), manga.get_author_string(),
+                manga.hash, manga.title, manga.description, manga.get_genre_string(), manga.get_author_string(),
                 manga.year, manga.url, manga.cover_url, manga.publish_status, manga.scan_status, manga.site.get_name()
                 )
         cursor.execute(cmd)
@@ -138,11 +138,10 @@ class Library(object):
         Library.covers[manga.title] = image
 
         # Adding an info file to the manga folder
-        # @TODO: UPDATE THIS TO ALL THE NEW INFORMATION!!!!
-        text = 'title={}\nurl={}\ncover_url={}\nauthor={}\nyear={}\ndescription={}\ngenera={}\n' \
+        text = 'title={}\nurl={}\ncover_url={}\nauthor={}\nyear={}\ndescription={}\genre={}\n' \
                'publish_status={}\nscan_status={}\nsite={}\n'.format(
                 manga.title, manga.url, manga.cover_url, manga.get_author_string(), manga.year, manga.description,
-                manga.get_genera_string(), manga.publish_status, manga.scan_status, manga.site.get_name()
+                manga.get_genre_string(), manga.publish_status, manga.scan_status, manga.site.get_name()
                 )
         manga_folder = os.path.join(Library.directory, manga.title)
         if not os.path.isdir(manga_folder):
@@ -167,11 +166,11 @@ class Library(object):
         if data is None:
             return None
 
-        genera = data[3].split(',')
+        genre = data[3].split(',')
         authors = data[4].split(',')
 
         manga = models.Manga(data[0], data[1], data[6], data[2], authors, data[5], data[7],
-                             Library.site_list[data[10]], data[8], data[9], genera)
+                             Library.site_list[data[10]], data[8], data[9], genre)
 
         # Selecting all of the chapters of the manga
         cursor.execute('SELECT * FROM chapter WHERE manga_id = {} ORDER BY number'.format(manga.hash))
@@ -190,16 +189,22 @@ class Library(object):
         if not os.path.isdir(folder):
             os.mkdir(folder)
 
-        # Adding an info file to the manga folder
-        text = 'title={}\nurl={}\ncover_url={}\ndescription={}\nsite={}\n'.format(
-            manga.title, manga.url, manga.cover_url, manga.description, manga.site
-        )
-        info_title = os.path.join(Library.directory, manga.title, manga.title + '.info')
-        with open(info_title, 'w') as info:
-            info.write(text)
-
         # updating the manga
-        updated_chapter_list = manga.site.update_manga(manga)
+        updated_chapter_list, status_changed = manga.site.update_manga(manga)
+
+        if status_changed:
+            cursor.execute("UPDATE manga SET publish_status=?, scan_status=? WHERE id=?",
+                           (manga.publish_status, manga.scan_status, manga.hash))
+            text = 'title={}\nurl={}\ncover_url={}\nauthor={}\nyear={}\ndescription={}\genre={}\n' \
+                'publish_status={}\nscan_status={}\nsite={}\n'.format(
+                    manga.title, manga.url, manga.cover_url, manga.get_author_string(), manga.year, manga.description,
+                    manga.get_genre_string(), manga.publish_status, manga.scan_status, manga.site.get_name()
+                )
+            manga_folder = os.path.join(Library.directory, manga.title)
+            info_title = os.path.join(manga_folder, manga.title + '.info')
+            with open(info_title, 'w') as info:
+                info.write(text)
+
         size = len(updated_chapter_list)
         if size <= 0:
             return updated_chapter_list
