@@ -2,7 +2,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtWebKit import *
 from PyQt4 import QtCore
 from PyQt4.QtGui import QColor
-from kml.lib import Library
+from kml.library import Library
 from PIL import Image, ImageQt
 import os
 import zipfile
