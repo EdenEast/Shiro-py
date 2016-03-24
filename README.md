@@ -1,6 +1,15 @@
 # Shiro
-View, Manage, download and stay up to date on your manga library.
+**View, Manage, Download and stay up to date on your manga library.**
 
+## Table of Contents
+* [Inspiration](#inspiration)
+* [Shortcut Keys](#shortcut-key)
+* [Supported Sites](#supperted-sites)
+* [Development](#development)
+* [Freezing with cx_Freeze](#freezing)
+* [Third Party Dependencies](#dependencies)
+
+## <a name="inspiration"></a> Inspiration
 I have looked for a manga library application to keep up with all of the manga that I am currently reading and could not find anything
 that scarified me. This is how Shiro was born.
 
@@ -8,7 +17,7 @@ that scarified me. This is how Shiro was born.
 ![main_window](http://i.imgur.com/Zj8Xd2i.png)
 ![reading_window](http://i.imgur.com/ZqdwRKz.png)
 
-## Shortcut Keys
+## <a name="shortcut-key"><a/> Shortcut Keys
 
 #### Main Window
 | Key           | Action                                                   |
@@ -43,13 +52,28 @@ that scarified me. This is how Shiro was born.
 | 3                       | Scale page to fit horizontally in window                             |
 | 4                       | Scale page to the bets fit for image and window                      |
 
-## Development
-Shiro is writen in in python 3.4 (writen for what PyQt4 is). To Build KML make sure that you have python 3.4 installed and run shiro.py.
-MAKE SURE that you also have the dependencies needed to build it.
+## <a name="supperted-sites"></a> Supported Sites
+- [MangaLife](http://manga.life)
 
-## Freezing [.exe] with cx_Freeze
-Shiro uses [cx_Freeze](http://cx-freeze.sourceforge.net) to package the application to different platforms. To freeze the application open
-up a terminal/console in root folder and run the command
+More supperted websites to come
+
+## <a name="development"></a> Development
+Shiro is writen in in python 3.4 (writen for what PyQt4 is). To Build KML make sure that you have python 3.4 installed and run shiro.py. **Make sure** that you also have the dependencies needed to build it.
+
+## <a name="freezing"></a> Freezing [.exe] with cx_Freeze
+Shiro uses [cx_Freeze](http://cx-freeze.sourceforge.net) to package the application to different platforms.
+Note: before freezing you have to make sure that the location is correct in `main_window.py`
+```python
+class Window(QtGui.QMainWindow):
+    def __init__(self):
+        super(Window, self).__init__()
+        # @NOTE: toggle these two lines depending on how you are running. The first one is for develop 2nd for building
+        # location = 'shiro/ui/main_window.ui'
+        location = 'main_window.ui'
+        uic.loadUi(location, self)
+```
+Once you have made sure that the location is set to the above example you are ready to freeze the application.
+To freeze the application open up a terminal/console in root folder and run the command
 `python setup.py build`
 
 If you want to build an installer run this command the same way that you ran the build command
@@ -60,7 +84,7 @@ If you want to build an installer run this command the same way that you ran the
 #### OSX
 `python setup.py bdist_dmg`
 
-## Third Party Dependencies
+## <a name="dependencies"></a> Third Party Dependencies
 - [PyQt4](https://pypi.python.org/pypi/PyQt4)
 - [BeautifulSoup4](https://pypi.python.org/pypi/beautifulsoup4)
 - [Pillow](https://pypi.python.org/pypi/Pillow)
