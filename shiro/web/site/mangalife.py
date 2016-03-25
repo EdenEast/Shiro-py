@@ -130,7 +130,7 @@ class MangaLife(object):
         db_chapter_count = len(manga.chapter_list)
 
         if db_chapter_count == chapter_collection_size:
-            return []
+            return [], status_changed
 
         # Getting the size difference of the site and the database
         delta = chapter_collection_size - db_chapter_count
