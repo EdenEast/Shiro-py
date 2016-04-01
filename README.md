@@ -10,8 +10,7 @@
 * [Third Party Dependencies](#dependencies)
 
 ## <a name="inspiration"></a> Inspiration
-I have looked for a manga library application to keep up with all of the manga that I am currently reading and could not find anything
-that scarified me. This is how Shiro was born.
+I have looked around for a manga library application to keep up with all of the manga that I am reading and could not find anything that satified me. This is how Shiro was born.
 
 ![split](http://i.imgur.com/8rCchO2.png)
 ![main_window](http://i.imgur.com/Zj8Xd2i.png)
@@ -58,7 +57,7 @@ that scarified me. This is how Shiro was born.
 More supperted websites to come
 
 ## <a name="development"></a> Development
-Shiro is writen in in python 3.4 (writen for what PyQt4 is). To Build KML make sure that you have python 3.4 installed and run shiro.py. **Make sure** that you also have the dependencies needed to build it.
+Shiro is writen in in python 3.4 (writen for what PyQt4 is). To Build Shiro make sure that you have python 3.4 installed and run shiro.py. **Make sure** that you also have the dependencies needed to build it.
 
 ## <a name="freezing"></a> Freezing [.exe] with cx_Freeze
 Shiro uses [cx_Freeze](http://cx-freeze.sourceforge.net) to package the application to different platforms.
