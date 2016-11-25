@@ -11,9 +11,10 @@ import zipfile
 
 
 class MangaLife(object):
-    _BASE_URL = 'http://manga.life'
-    _DIRECTORY_URL = 'http://manga.life/directory/'
-    _SEARCH_URL = 'http://manga.life/search/?q='
+    _BASE_URL = 'http://mangalife.org'
+    _DIRECTORY_URL = 'http://mangalife.org/directory/'
+    # _SEARCH_URL = 'http://manga.life/search/?q='
+    _SEARCH_URL = 'http://mangalife.org/search/?keyword=room'
     _SITE_NAME = 'MangaLife'
 
     def __init__(self, library):
@@ -28,67 +29,66 @@ class MangaLife(object):
         soup, html = web_utility.get_soup_from_url(url)
 
         # Getting the title of the series
-        # title = soup.title
-        title = soup.find('title').text
-        title = title.split('- Read ')[1].split(' Online Free')[0]
+        title = soup.find('title').text.replace(' Manga For Free  | MangaLife', '')
+        title = title.split(' ', 1)[1]
         title = re.sub("[\':]", '', title)
-        # title = title.replace('\'', '')
 
         # Getting the description of the series
         description = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-12 span div div div')[0].text
         description = description.replace('\'', '').replace('\"', '')
 
+        header_links = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-12 span div > div > a')
+
         # Getting all of the genera links
-        genera_collection = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-12 span div > div > a.dark_link')
         genera_list = []
-        for link in genera_collection:
-            genera_list.append(link.text)
+        authors = []
+        year = 0
+        scan_status = ''
+        publish_status = ''
+        for link in header_links:
+            href = link.get('href')
+            if '?genre=' in href:
+                genera_list.append(link.text)
+            elif '?year=' in href:
+                year = link.text
+            elif '?author=' in href:
+                authors.append(link.text)
+            elif '?type=' in href:
+                manga_type = link.text
+            elif '?status=' in href:
+                scan_status = self.parse_status(link.text)
+            elif '?pstatus':
+                publish_status = self.parse_status(link.text)
 
-        # Getting Publishing Authors and year Scanlation Status
-        info_links = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-12  span div > div')
-        if 'Alternate Names: ' in str(info_links[0]):
-            publish_status = info_links[3].text.rstrip().lstrip().split(': ')[1]
-            scan_status = info_links[4].text.rstrip().lstrip().split(': ')[1]
-            authors_text = info_links[2].text.rstrip().lstrip()
-        else:
-            publish_status = info_links[2].text.rstrip().lstrip().split(': ')[1]
-            scan_status = info_links[3].text.rstrip().lstrip().split(': ')[1]
-            authors_text = info_links[1].text.rstrip().lstrip()
-
-        year = authors_text.split('(', 1)[-1].rsplit(')', 1)[0]
-        authors_text = authors_text.split('Author: ')[1].split('(', 1)[0]
-        authors = authors_text.split(', ')
+        # Checking if it has an alternative name
+        info_header = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-12  span div > div')
+        if 'Alternate Name(s):' in str(info_header[0]):
+            alternative_names = info_header[0].text.split('Alternate Name(s):  ')[1].rstrip('\n\t')
 
         # Getting the cover_image
-        cover_url = soup.select('body > div.container.container-main > div.well > div.row >'
-                                ' div.col-lg-3.col-md-3.col-sm-3.hidden-xs > img')[0].get('src')
-
-        # Create the image url from the manga url ang the cover url that i am given
-        ext = cover_url.rsplit('.', 1)[1]
-        cover_src = '{}/{}.{}'.format(cover_url.rsplit('/', 1)[0], url.rsplit('/', 1)[1], ext)
+        cover_url = soup.select('div.col-lg-3.col-md-3.col-sm-3.hidden-xs.leftImage > img')[0].get('src')
 
         # Creating the manga object
         manga = Manga(hash_string(title), title, url, description, authors, int(year), cover_url, self,
                       publish_status, scan_status, genera_list)
 
         # Finding all of the chapters
-        chapter_link_list = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-9 > a')
+        chapter_link_list = soup.select('body > div.container.mainContainer > div > div.list.chapter-list > a')
 
         # Going though all of the chapters
         for link in chapter_link_list:
             # Getting chapter link
-            href = self._BASE_URL + link.get('href')
-            if '/page-' in href:
-                href = href.split('/page-')[0]
+            href = self._BASE_URL + link.get('href').replace('-page-1', '')
+
             # Finding the chapter number
-            raw_number = href.split('/chapter-')[1].split('/index-')[0]
+            raw_number = link.get('chapter')
             number = sub_number = '0'
             if '.' in raw_number:
                 number, sub_number = raw_number.split('.')
             else:
                 number = raw_number
 
-            chapter_title = link.text.rstrip().lstrip()
+            chapter_title = link.span.text
 
             chapter = Chapter(chapter_title, href, int(number), int(sub_number), False, False, manga)
             manga.add_chapter(chapter)
@@ -109,20 +109,22 @@ class MangaLife(object):
         soup, html = web_utility.get_soup_from_url(manga.url)
 
         # Getting Publishing Authors and year Scanlation Status
-        info_links = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-12  span div > div')
-        if 'Alternate Names: ' in str(info_links[0]):
-            publish_status = info_links[3].text.rstrip().lstrip().split(': ')[1]
-            scan_status = info_links[4].text.rstrip().lstrip().split(': ')[1]
-        else:
-            publish_status = info_links[2].text.rstrip().lstrip().split(': ')[1]
-            scan_status = info_links[3].text.rstrip().lstrip().split(': ')[1]
+        scan_status = ''
+        publish_status = ''
+        header_links = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-12 span div > div > a')
+        for link in header_links:
+            href = link.get('href')
+            if '?status=' in href:
+                scan_status = self.parse_status(link.text)
+            elif '?pstatus':
+                publish_status = self.parse_status(link.text)
 
         if manga.publish_status != publish_status or manga.scan_status != scan_status:
             status_changed = True
             manga.publish_status = publish_status
             manga.scan_status = scan_status
 
-        chapter_collection = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-9 > a')
+        chapter_collection = soup.select('body > div.container.mainContainer > div > div.list.chapter-list > a')
         chapter_collection.reverse()
         chapter_collection_size = len(chapter_collection)
 
@@ -140,17 +142,18 @@ class MangaLife(object):
 
         for i in range(delta):
             link = chapter_collection[index]
-            href = self._BASE_URL + link.get('href')
-            if '/page-' in href:
-                href = href.split('/page-')[0]
-            raw_number = href.split('/chapter-')[1].split('/index-')[0]
+            href = self._BASE_URL + link.get('href').replace('-page-1', '')
+
+            raw_number = link.get('chapter')
             if '.' in raw_number:
                 number, sub_number = raw_number.split('.')
             else:
                 number = raw_number
                 sub_number = '0'
-            title = link.text.rstrip().lstrip()
+
+            title = link.span.text
             chapter = Chapter(title, href, int(number), int(sub_number), False, False, manga)
+
             updated_chapter_list.append(chapter)
             manga.add_chapter(chapter)
             index += 1
@@ -165,7 +168,7 @@ class MangaLife(object):
 
         soup, html = web_utility.get_soup_from_url(chapter.url)
         images = []
-        image_links = soup.findAll('img')
+        image_links = soup.select('div.image-container > div > img')
         for image in image_links:
             src = image.get('src')
             name = src.rsplit('/', 1)[1]
@@ -210,7 +213,7 @@ class MangaLife(object):
         thread_list = []
         images = []
         lock = threading.Lock()
-        image_links = soup.findAll('img')
+        image_links = soup.select('div.image-container > div > img')
         for link in image_links:
             t = threading.Thread(target=web_utility.download_image_link, args=(link, images, lock))
             t.daemon = True
@@ -231,28 +234,37 @@ class MangaLife(object):
     def get_all_pages_from_chapter(self, url):
         result = []
         soup, html = web_utility.get_soup_from_url(url)
-        image_links = soup.findAll('img')
+        image_links = soup.select('div.image-container > div > img')
         for link in image_links:
             src = link.get('src')
             result.append(src)
         return result
 
     def get_list_search_results(self, search_term):
-        ret = []
-        search_term = search_term.replace(' ', '+')
-        soup, html = web_utility.get_soup_from_url(MangaLife._SEARCH_URL + search_term)
-        search_result_hl = soup.select('body > div.container.container-main > div > '
-                                       'div.col-lg-8.col-md-8.col-sm-12.col-xs-12 > div.well > h1')
-        if search_result_hl:
-            links = soup.select('#content > p > a')
-            for link in links:
-                url = MangaLife._BASE_URL + link.get('href').replace('..', '')
-                title = link.text
-                ret.append([title, url, self])
-        else:
-            title_tag = soup.select('div.col-lg-8.col-md-8.col-sm-8.col-xs-12 > h1')
-            title = title_tag[0].text
-            chapters = soup.select('div.col-lg-9.col-md-9.col-sm-9.col-xs-9 > a')[0]
-            href = MangaLife._BASE_URL + chapters.get('href').replace('..', '').split('/chapter-')[0]
-            ret.append([title, href, self])
-        return ret
+        result = []
+        search_term = search_term.lower()
+        soup, html = web_utility.get_soup_from_url('http://mangalife.org/directory/')
+        directory_link_list = soup.select('a.ttip')
+        for link in directory_link_list:
+            text = link.text
+            if search_term in text.lower():
+                href = MangaLife._BASE_URL + link.get('href')
+                result.append((text, href, self))
+        return result
+
+    def parse_status(self, status):
+        lower = status.lower()
+        if 'ongoing' in lower:
+            return 'Ongoing'
+        if 'incomplete' in lower:
+            return 'Incomplete'
+        if 'complete' in lower:
+            return 'Completed'
+        if 'hiatus' in lower:
+            return 'Hiatus'
+        if 'cancel' in lower:
+            return 'Canceled'
+        if 'discontinue' in lower:
+            return 'Discontinue'
+        if 'unfinished' in lower:
+            return 'Unfinished'

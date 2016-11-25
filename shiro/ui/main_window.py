@@ -63,8 +63,8 @@ class Window(QtGui.QMainWindow):
     def __init__(self):
         super(Window, self).__init__()
         # @NOTE: toggle these two lines depending on how you are running. The first one is for develop 2nd for building
-        location = 'shiro/ui/main_window.ui'
-        # location = 'main_window.ui'
+        # location = 'shiro/ui/main_window.ui'
+        location = 'main_window.ui'
         uic.loadUi(location, self)
 
         self.download_task = None
@@ -295,7 +295,7 @@ class Window(QtGui.QMainWindow):
 
     def update_library(self):
         cursor = Library.db.cursor()
-        query = 'SELECT title FROM manga'
+        query = "SELECT title FROM manga WHERE scan_status != 'Completed'"
         query_result = cursor.execute(query).fetchall()
 
         self.update_window = update_window.UpdateWindow(self)

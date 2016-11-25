@@ -34,7 +34,7 @@ packages = []
 
 # ----------------------------------------------------------
 # Include Files
-include_files = ['icon.ico', 'shiro/ui/main_window.ui']
+include_files = [icon, 'shiro/ui/main_window.ui']
 
 # -----------------------------------------------------------
 # Options Setup
